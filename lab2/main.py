@@ -60,7 +60,7 @@ async def robotTest(loop):
             # Unpack from an example stream that transmits a 2-byte and a
             # 4-byte integer as quickly as possible, both little-endian.
             if (code == Commands.BYTESTREAM_TX.value):
-                print("TODO: Handle test bytestream messages")
+                print(unpack("<Iq", data))   #unpacks 1 4-byte int and 8 8-byte int 
 
     async def checkMessages():
         while True:
@@ -98,7 +98,7 @@ async def robotTest(loop):
         # await client.write_gatt_char(Descriptors["RX_CHAR_UUID"].value, msg)
 
         async def myRobotTasks():
-            pass
+            # pass
 
             # await theRobot.ping()
 
@@ -110,6 +110,8 @@ async def robotTest(loop):
             #     await asyncio.sleep(1)
 
             # await theRobot.testByteStream(25)
+
+            await theRobot.sendCommand(Commands.START_BYTESTREAM_TX)
 
         async def motorLoop():
             while True:

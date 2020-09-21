@@ -16,6 +16,7 @@
 uint8_t val[MAXREPLY];
 uint8_t *val_data = &val[2]; // start of optional data area
 uint8_t *val_len = &val[1];  // store length of optional data
+int packet_count = 0;
 
 /********************************************************************************************************************
                  INCLUDES
@@ -242,7 +243,10 @@ void loop()
         case REQ_FLOAT:
             Serial.println("Going to send a float");
             //TODO: Put a float (perhaps pi) into a command response and send it.
-            amdtpsSendData((uint8_t *)res_cmd, TODO_VAL);
+            res_cmd->command_type = GIVE_FLOAT;     //set command type as GIVE_FLOAT
+            res_cmd->length=6;                      
+            ((float *)(res_cmd->data))[0] = 3.14f;  //put a float into data to send
+            amdtpsSendData((uint8_t *)res_cmd, 6);  //2 bytes for type and length, 4 bytes of data
             break;
         case PING:
             Serial.println("Ping Pong");
@@ -250,7 +254,7 @@ void loop()
             amdtpsSendData(m_Rcvd, l_Rcvd);
             break;
         case START_BYTESTREAM_TX:
-            bytestream_active = (int)cmd->data[0];
+            bytestream_active = 1;
             //Serial.printf("Start bytestream with active %d \n", bytestream_active);
             ((uint32_t *)res_cmd->data)[0] = 0;
             break;
@@ -290,15 +294,45 @@ void loop()
         printOverBluetooth("Message Received.");
     }
 
-    if (bytestream_active)
-    {
-        res_cmd->command_type = BYTESTREAM_TX;
-        res_cmd->length = TODO_VAL;
-        //TODO: Put an example of a 32-bit integer and a 64-bit integer
-        //for the stream. Be sure to add a corresponding case in the
-        //python program.
-        //Serial.printf("Stream %d \n", bytestream_active);
-        amdtpsSendData((uint8_t *)res_cmd, TODO_VAL);
+    if (bytestream_active) {
+  
+      res_cmd->command_type = BYTESTREAM_TX;  //set command type to bytestream transmit
+      res_cmd->length = 14;                    //length doesn't matter since the handler will take care of this
+      //TODO: Put an example of a 32-bit integer and a 64-bit integer
+      //for the stream. Be sure to add a corresponding case in the python program.
+      //Serial.printf("Stream %d \n", bytestream_active);
+      
+      ((uint32_t *)(res_cmd->data))[0] = 32;  //put a 32 bit integer into data to send (4 bytes)
+      
+      uint64_t num = 64;
+      memcpy(res_cmd->data+4, &num, 8);       //put a 64 bit integer into data to send (8 bytes)
+
+      // send a little data
+      amdtpsSendData((uint8_t *)res_cmd, 14);  //2 bytes for type and length, 12 bytes of data
+
+      
+    
+      // send a lot of data
+//      uint64_t num2 = 32;
+//      memcpy(res_cmd->data+12, &num2, 8);       //put a 64 bit integer into data to send (8 bytes)
+//      uint64_t num3 = 48;
+//      memcpy(res_cmd->data+20, &num3, 8);       //put a 64 bit integer into data to send (8 bytes)
+//      uint64_t num4 = 16;
+//      memcpy(res_cmd->data+28, &num4, 8);       //put a 64 bit integer into data to send (8 bytes)
+//      uint64_t num5 = 20;
+//      memcpy(res_cmd->data+36, &num5, 8);       //put a 64 bit integer into data to send (8 bytes)
+//      uint64_t num6 = 24;
+//      memcpy(res_cmd->data+44, &num6, 6);       //put a 64 bit integer into data to send (8 bytes)     
+//      uint64_t num7 = 70;
+//      memcpy(res_cmd->data+52, &num7, 8);       //put a 64 bit integer into data to send (8 bytes)
+//      uint64_t num8 = 70;
+//      memcpy(res_cmd->data+60, &num8, 8);       //put a 64 bit integer into data to send (8 bytes)
+//      amdtpsSendData((uint8_t *)res_cmd, 70);  //2 bytes for type and length, 68 bytes of data
+      
+      //Print time
+      unsigned long t = micros();
+      Serial.printf("Packet %d sent at %d micro seconds \n", packet_count, t);
+      packet_count++;
     }
 
     trigger_timers();
