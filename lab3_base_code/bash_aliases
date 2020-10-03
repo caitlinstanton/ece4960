@@ -1,0 +1,3 @@
+alias lab3-manager="mon launch lab3 work.launch --no-start"
+alias robot-keyboard-teleop="rosrun lab3 teleop_keyboard.py"
+
