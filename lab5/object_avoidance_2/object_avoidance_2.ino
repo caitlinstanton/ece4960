@@ -9,14 +9,16 @@
 #include <vl53l1_error_codes.h>
 #include <Wire.h>
 #include "SparkFun_VL53L1X.h" //Click here to get the library: http://librarymanager/All#SparkFun_VL53L1X
+#include "SparkFun_VCNL4040_Arduino_Library.h"
 
 //Optional interrupt and shutdown pins.
 #define SHUTDOWN_PIN 2
 #define INTERRUPT_PIN 3
 
 SCMD myMotorDriver; //This creates the main object of one motor driver and connected slaves.
-
+VCNL4040 proximitySensor;
 SFEVL53L1X distanceSensor;
+
 //Uncomment the following line to use the optional shutdown and interrupt pins.
 //SFEVL53L1X distanceSensor(Wire, SHUTDOWN_PIN, INTERRUPT_PIN);
 
@@ -45,8 +47,12 @@ void setup(void)
 
   // sensor setup  
   Wire.begin();
-
-  Serial.println("VL53L1X Qwiic Test");
+  if (proximitySensor.begin() == false)
+  {
+    Serial.println("Device not found. Please check wiring.");
+    while (1); //Freeze!
+  }
+  //Serial.println("VL53L1X Qwiic Test");
   //VL53L1_SetInterMeasurementPeriodMilliSeconds(&VL53L1Dev, 1000 );
   if (distanceSensor.begin() != 0) //Begin returns 0 on a good init
   {
@@ -73,8 +79,8 @@ void backward() {
 }
 
 void turnRight() {
-  myMotorDriver.setDrive(0,1,0); //drive right motor
-  myMotorDriver.setDrive(1,0,200); //drive left motor
+  myMotorDriver.setDrive(0,1,200); //drive right motor
+  myMotorDriver.setDrive(1,1,200); //drive left motor
 }
 
 void stopWheels() {
@@ -82,9 +88,12 @@ void stopWheels() {
   myMotorDriver.setDrive(1,1,0); //drive left motor
 }
 
-void brakeForwards() {
-  myMotorDriver.setDrive(0,0,255); //drive right motor
-  myMotorDriver.setDrive(1,0,255); //drive left motor
+void brakeHard() {
+  myMotorDriver.setDrive(0,1,200);//reverse for a touch
+  myMotorDriver.setDrive(1,0,200);
+  delay(200);
+  myMotorDriver.setDrive(0,0,0);
+  myMotorDriver.setDrive(1,0,0);
 }
 
 void loop(void)
@@ -93,28 +102,30 @@ void loop(void)
   {
     delay(1);
   }
-  int distance = distanceSensor.getDistance(); //Get the result of the measurement from the sensor
+  int distance = distanceSensor.getDistance(); //Get the result of the measurement from the ToF sensor
+  unsigned int proxValue = proximitySensor.getProximity();  //Get result from prox sensor
   distanceSensor.clearInterrupt();
 
-//  Serial.print("Distance(mm): ");
-//  Serial.print(distance);
-//  Serial.print(", ");
-//  Serial.print(distanceSensor.getRangeStatus());
-//  Serial.print("\n");
+  Serial.print("Distance(mm): ");
+  Serial.print(distance);
+  Serial.print(", ");
+  Serial.print(distanceSensor.getRangeStatus());
+  Serial.print("\tProx: ");
+  Serial.print(proxValue);
+  Serial.print("\n");
   
   byte rangeStatus = distanceSensor.getRangeStatus();
   if(rangeStatus==0)  //only act if sensor reading was good
   {
-    if(distance==0 || distance>300) //0 if there is no object nearby
+    if((distance==0 || distance>300) && proxValue<20) //0 if there is no object nearby
     {
       forward();
     }
     else
     {
-      turnRight();
-      delay(200);
+      brakeHard();
+      //turnRight();
+      delay(400);
     }
   }
-
-  //Serial.println();
 }
