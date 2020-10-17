@@ -1,0 +1,270 @@
+ > Lab Work Directory: /home/artemis/catkin_ws/src/
+------- STEP: 1 -------
+Archive:  lab6.zip
+   creating: /home/artemis/catkin_ws/src/lab6/
+  inflating: /home/artemis/catkin_ws/src/lab6/CMakeLists.txt  
+  inflating: /home/artemis/catkin_ws/src/lab6/package.xml  
+   creating: /home/artemis/catkin_ws/src/lab6/include/
+   creating: /home/artemis/catkin_ws/src/lab6/include/lab6/
+   creating: /home/artemis/catkin_ws/src/lab6/launch/
+  inflating: /home/artemis/catkin_ws/src/lab6/launch/work.launch  
+   creating: /home/artemis/catkin_ws/src/lab6/msg/
+  inflating: /home/artemis/catkin_ws/src/lab6/msg/MapPoints.msg  
+  inflating: /home/artemis/catkin_ws/src/lab6/msg/PlotPoint.msg  
+  inflating: /home/artemis/catkin_ws/src/lab6/msg/PlotPose.msg  
+  inflating: /home/artemis/catkin_ws/src/lab6/msg/SimPose.msg  
+   creating: /home/artemis/catkin_ws/src/lab6/scripts/
+  inflating: /home/artemis/catkin_ws/src/lab6/scripts/lab6.ipynb  
+  inflating: /home/artemis/catkin_ws/src/lab6/scripts/robot_interface.py  
+  inflating: /home/artemis/catkin_ws/src/lab6/scripts/plotter_config.ini  
+   creating: /home/artemis/catkin_ws/src/lab6/src/
+  inflating: /home/artemis/catkin_ws/src/lab6/src/plotter.py  
+  inflating: /home/artemis/catkin_ws/src/lab6/src/stageros_lab6.cpp  
+  inflating: /home/artemis/catkin_ws/src/lab6/src/teleop_keyboard.py  
+   creating: /home/artemis/catkin_ws/src/lab6/world/
+  inflating: /home/artemis/catkin_ws/src/lab6/world/empty.pgm  
+  inflating: /home/artemis/catkin_ws/src/lab6/world/maze.png  
+  inflating: /home/artemis/catkin_ws/src/lab6/world/playground.world  
+  inflating: /home/artemis/catkin_ws/src/lab6/world/map_1.pgm  
+------- STEP: 2 -------
+
+source /opt/ros/melodic/setup.bash
+source /home/artemis/catkin_ws/devel/setup.bash
+
+source ~/.bash_aliases
+--- ls:
+-rwxr-xr-x 1 artemis artemis 302 Oct 13 21:52 /home/artemis/.bash_aliases
+--- cat:
+alias lab3-manager="mon launch lab3 work.launch --no-start"
+alias lab4-manager="mon launch lab4 work.launch --no-start"
+alias lab5-manager="mon launch lab5 work.launch --no-start"
+alias lab6-manager="mon launch lab6 work.launch --no-start"
+alias robot-keyboard-teleop="rosrun lab6 teleop_keyboard.py"
+
+
+------- STEP: 3 -------
+-- Using CATKIN_DEVEL_PREFIX: /home/artemis/catkin_ws/devel
+-- Using CMAKE_PREFIX_PATH: /home/artemis/catkin_ws/devel;/opt/ros/melodic
+-- This workspace overlays: /home/artemis/catkin_ws/devel;/opt/ros/melodic
+-- Found PythonInterp: /usr/bin/python2 (found suitable version "2.7.17", minimum required is "2") 
+-- Using PYTHON_EXECUTABLE: /usr/bin/python2
+-- Using Debian Python package layout
+-- Using empy: /usr/bin/empy
+-- Using CATKIN_ENABLE_TESTING: ON
+-- Call enable_testing()
+-- Using CATKIN_TEST_RESULTS_DIR: /home/artemis/catkin_ws/build/test_results
+-- Found gtest sources under '/usr/src/googletest': gtests will be built
+-- Found gmock sources under '/usr/src/googletest': gmock will be built
+-- Found PythonInterp: /usr/bin/python2 (found version "2.7.17") 
+-- Using Python nosetests: /usr/bin/nosetests-2.7
+-- catkin 0.7.28
+-- BUILD_SHARED_LIBS is on
+-- BUILD_SHARED_LIBS is on
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- ~~  traversing 2 packages in topological order:
+-- ~~  - lab4
+-- ~~  - lab6
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- +++ processing catkin package: 'lab4'
+-- ==> add_subdirectory(lab4)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Boost version: 1.65.1
+-- Found the following Boost libraries:
+--   system
+--   thread
+--   chrono
+--   date_time
+--   atomic
+-- lab4: 4 messages, 0 services
+-- +++ processing catkin package: 'lab6'
+-- ==> add_subdirectory(lab6)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Boost version: 1.65.1
+-- Found the following Boost libraries:
+--   system
+--   thread
+--   chrono
+--   date_time
+--   atomic
+-- lab6: 4 messages, 0 services
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/artemis/catkin_ws/build
+Scanning dependencies of target geometry_msgs_generate_messages_eus
+[  0%] Built target geometry_msgs_generate_messages_eus
+[  0%] Built target _lab4_generate_messages_check_deps_MapPoints
+[  0%] Built target _lab4_generate_messages_check_deps_PlotPose
+Scanning dependencies of target nav_msgs_generate_messages_eus
+[  0%] Built target nav_msgs_generate_messages_eus
+[  0%] Built target _lab4_generate_messages_check_deps_SimPose
+Scanning dependencies of target std_msgs_generate_messages_eus
+[  0%] Built target std_msgs_generate_messages_eus
+Scanning dependencies of target geometry_msgs_generate_messages_py
+[  0%] Built target geometry_msgs_generate_messages_py
+[  0%] Built target _lab4_generate_messages_check_deps_PlotPoint
+Scanning dependencies of target std_msgs_generate_messages_py
+Scanning dependencies of target nav_msgs_generate_messages_py
+[  0%] Built target std_msgs_generate_messages_py
+[  0%] Built target nav_msgs_generate_messages_py
+Scanning dependencies of target std_msgs_generate_messages_nodejs
+Scanning dependencies of target nav_msgs_generate_messages_nodejs
+[  0%] Built target std_msgs_generate_messages_nodejs
+[  0%] Built target nav_msgs_generate_messages_nodejs
+Scanning dependencies of target geometry_msgs_generate_messages_nodejs
+Scanning dependencies of target geometry_msgs_generate_messages_lisp
+[  0%] Built target geometry_msgs_generate_messages_nodejs
+Scanning dependencies of target nav_msgs_generate_messages_lisp
+[  0%] Built target geometry_msgs_generate_messages_lisp
+[  0%] Built target nav_msgs_generate_messages_lisp
+Scanning dependencies of target std_msgs_generate_messages_lisp
+Scanning dependencies of target geometry_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_lisp
+[  0%] Built target geometry_msgs_generate_messages_cpp
+Scanning dependencies of target std_msgs_generate_messages_cpp
+Scanning dependencies of target nav_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_cpp
+[  0%] Built target nav_msgs_generate_messages_cpp
+Scanning dependencies of target sensor_msgs_generate_messages_py
+Scanning dependencies of target tf2_msgs_generate_messages_nodejs
+[  0%] Built target sensor_msgs_generate_messages_py
+[  0%] Built target tf2_msgs_generate_messages_nodejs
+Scanning dependencies of target tf2_msgs_generate_messages_py
+Scanning dependencies of target tf2_msgs_generate_messages_lisp
+[  0%] Built target tf2_msgs_generate_messages_py
+[  0%] Built target tf2_msgs_generate_messages_lisp
+Scanning dependencies of target tf2_msgs_generate_messages_eus
+Scanning dependencies of target tf2_msgs_generate_messages_cpp
+[  0%] Built target tf2_msgs_generate_messages_eus
+[  0%] Built target tf2_msgs_generate_messages_cpp
+Scanning dependencies of target actionlib_generate_messages_py
+Scanning dependencies of target actionlib_generate_messages_nodejs
+[  0%] Built target actionlib_generate_messages_py
+[  0%] Built target actionlib_generate_messages_nodejs
+Scanning dependencies of target actionlib_generate_messages_eus
+Scanning dependencies of target tf_generate_messages_nodejs
+[  0%] Built target actionlib_generate_messages_eus
+[  0%] Built target tf_generate_messages_nodejs
+Scanning dependencies of target tf_generate_messages_lisp
+Scanning dependencies of target tf_generate_messages_eus
+[  0%] Built target tf_generate_messages_lisp
+[  0%] Built target tf_generate_messages_eus
+Scanning dependencies of target tf_generate_messages_cpp
+Scanning dependencies of target std_srvs_generate_messages_py
+[  0%] Built target tf_generate_messages_cpp
+[  0%] Built target std_srvs_generate_messages_py
+Scanning dependencies of target actionlib_generate_messages_lisp
+Scanning dependencies of target std_srvs_generate_messages_nodejs
+[  0%] Built target actionlib_generate_messages_lisp
+[  0%] Built target std_srvs_generate_messages_nodejs
+Scanning dependencies of target std_srvs_generate_messages_lisp
+Scanning dependencies of target rosgraph_msgs_generate_messages_eus
+[  0%] Built target std_srvs_generate_messages_lisp
+[  0%] Built target rosgraph_msgs_generate_messages_eus
+Scanning dependencies of target actionlib_msgs_generate_messages_cpp
+Scanning dependencies of target std_srvs_generate_messages_cpp
+[  0%] Built target actionlib_msgs_generate_messages_cpp
+[  0%] Built target std_srvs_generate_messages_cpp
+Scanning dependencies of target roscpp_generate_messages_lisp
+Scanning dependencies of target sensor_msgs_generate_messages_cpp
+[  0%] Built target roscpp_generate_messages_lisp
+[  0%] Built target sensor_msgs_generate_messages_cpp
+Scanning dependencies of target sensor_msgs_generate_messages_eus
+Scanning dependencies of target actionlib_msgs_generate_messages_nodejs
+[  0%] Built target sensor_msgs_generate_messages_eus
+[  0%] Built target actionlib_msgs_generate_messages_nodejs
+Scanning dependencies of target rosgraph_msgs_generate_messages_nodejs
+Scanning dependencies of target rosgraph_msgs_generate_messages_py
+[  0%] Built target rosgraph_msgs_generate_messages_nodejs
+[  0%] Built target rosgraph_msgs_generate_messages_py
+Scanning dependencies of target roscpp_generate_messages_py
+Scanning dependencies of target actionlib_msgs_generate_messages_eus
+[  0%] Built target roscpp_generate_messages_py
+[  0%] Built target actionlib_msgs_generate_messages_eus
+Scanning dependencies of target actionlib_msgs_generate_messages_lisp
+Scanning dependencies of target actionlib_msgs_generate_messages_py
+[  0%] Built target actionlib_msgs_generate_messages_lisp
+[  0%] Built target actionlib_msgs_generate_messages_py
+Scanning dependencies of target roscpp_generate_messages_nodejs
+Scanning dependencies of target roscpp_generate_messages_eus
+[  0%] Built target roscpp_generate_messages_nodejs
+[  0%] Built target roscpp_generate_messages_eus
+Scanning dependencies of target rosgraph_msgs_generate_messages_cpp
+Scanning dependencies of target rosgraph_msgs_generate_messages_lisp
+[  0%] Built target rosgraph_msgs_generate_messages_cpp
+[  0%] Built target rosgraph_msgs_generate_messages_lisp
+Scanning dependencies of target std_srvs_generate_messages_eus
+Scanning dependencies of target sensor_msgs_generate_messages_lisp
+[  0%] Built target std_srvs_generate_messages_eus
+[  0%] Built target sensor_msgs_generate_messages_lisp
+Scanning dependencies of target actionlib_generate_messages_cpp
+Scanning dependencies of target roscpp_generate_messages_cpp
+[  0%] Built target actionlib_generate_messages_cpp
+[  0%] Built target roscpp_generate_messages_cpp
+Scanning dependencies of target sensor_msgs_generate_messages_nodejs
+Scanning dependencies of target tf_generate_messages_py
+[  0%] Built target sensor_msgs_generate_messages_nodejs
+[  0%] Built target tf_generate_messages_py
+Scanning dependencies of target _lab6_generate_messages_check_deps_PlotPose
+Scanning dependencies of target _lab6_generate_messages_check_deps_MapPoints
+[  0%] Built target _lab6_generate_messages_check_deps_PlotPose
+Scanning dependencies of target _lab6_generate_messages_check_deps_PlotPoint
+[  0%] Built target _lab6_generate_messages_check_deps_MapPoints
+Scanning dependencies of target _lab6_generate_messages_check_deps_SimPose
+[  0%] Built target _lab6_generate_messages_check_deps_PlotPoint
+[  0%] Built target _lab6_generate_messages_check_deps_SimPose
+[ 10%] Built target lab4_generate_messages_eus
+[ 20%] Built target lab4_generate_messages_py
+[ 29%] Built target lab4_generate_messages_nodejs
+[ 37%] Built target lab4_generate_messages_lisp
+Scanning dependencies of target stageros_lab6
+[ 45%] Built target lab4_generate_messages_cpp
+[ 47%] Building CXX object lab6/CMakeFiles/stageros_lab6.dir/src/stageros_lab6.cpp.o
+[ 52%] Built target stageros_lab4
+Scanning dependencies of target lab6_generate_messages_py
+[ 54%] Generating Python from MSG lab6/PlotPose
+[ 56%] Generating Python from MSG lab6/SimPose
+[ 58%] Generating Python from MSG lab6/MapPoints
+[ 60%] Generating Python from MSG lab6/PlotPoint
+[ 62%] Generating Python msg __init__.py for lab6
+[ 62%] Built target lab6_generate_messages_py
+Scanning dependencies of target lab6_generate_messages_cpp
+[ 64%] Generating C++ code from lab6/PlotPose.msg
+[ 66%] Generating C++ code from lab6/SimPose.msg
+[ 68%] Generating C++ code from lab6/MapPoints.msg
+[ 70%] Generating C++ code from lab6/PlotPoint.msg
+[ 70%] Built target lab6_generate_messages_cpp
+Scanning dependencies of target lab6_generate_messages_eus
+[ 72%] Generating EusLisp code from lab6/PlotPose.msg
+[ 75%] Generating EusLisp code from lab6/SimPose.msg
+[ 77%] Generating EusLisp code from lab6/MapPoints.msg
+[ 79%] Generating EusLisp code from lab6/PlotPoint.msg
+[ 81%] Generating EusLisp manifest code for lab6
+[ 81%] Built target lab6_generate_messages_eus
+Scanning dependencies of target lab6_generate_messages_lisp
+[ 83%] Generating Lisp code from lab6/PlotPose.msg
+[ 85%] Generating Lisp code from lab6/SimPose.msg
+[ 87%] Generating Lisp code from lab6/MapPoints.msg
+[ 89%] Generating Lisp code from lab6/PlotPoint.msg
+[ 89%] Built target lab6_generate_messages_lisp
+Scanning dependencies of target lab6_generate_messages_nodejs
+[ 91%] Generating Javascript code from lab6/PlotPose.msg
+[ 93%] Generating Javascript code from lab6/SimPose.msg
+[ 95%] Generating Javascript code from lab6/MapPoints.msg
+[ 97%] Generating Javascript code from lab6/PlotPoint.msg
+[ 97%] Built target lab6_generate_messages_nodejs
+[ 97%] Built target lab4_generate_messages
+Scanning dependencies of target lab6_generate_messages
+[ 97%] Built target lab6_generate_messages
+[100%] Linking CXX executable /home/artemis/catkin_ws/devel/lib/lab6/stageros_lab6
+[100%] Built target stageros_lab6
+Base path: /home/artemis/catkin_ws
+Source space: /home/artemis/catkin_ws/src
+Build space: /home/artemis/catkin_ws/build
+Devel space: /home/artemis/catkin_ws/devel
+Install space: /home/artemis/catkin_ws/install
+####
+#### Running command: "cmake /home/artemis/catkin_ws/src -DCATKIN_DEVEL_PREFIX=/home/artemis/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/artemis/catkin_ws/install -G Unix Makefiles" in "/home/artemis/catkin_ws/build"
+####
+####
+#### Running command: "make -j2 -l2" in "/home/artemis/catkin_ws/build"
+####

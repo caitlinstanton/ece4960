@@ -1,0 +1,99 @@
+define landmark model 
+(
+  size [1.0 1.0 0.5]
+  gui_nose 0
+)
+
+
+define topurg ranger
+(
+  sensor( 			
+    range [ 0.0  6.0 ]
+    fov 3
+    samples 1
+    noise [ 0.005 0.005 0.005 ]
+  )
+
+  # generic model properties
+  color "red"
+  size [ 0.050 0.050 0.100 ]
+)
+
+define turtlebot position
+(
+  pose [ 0.000 0.000 0.000 0.000 ]
+  name "robot" 
+  color "green"
+
+
+  size [ 0.200 0.200 0.300 ]
+  block
+  (
+    points 6
+    point[0] [0.75 0]
+    point[1] [1 0.25]
+    point[2] [1 0.75]
+    point[3] [0.75 1]
+    point[4] [0 1]
+    point[5] [0 0]
+    z [0 1]
+  )
+
+  origin [ 0.000 0.000 0.000 0.000 ]
+  gui_nose 1
+  drive "diff"
+
+  localization "odom"
+  odom_error [0.0 0.0 0.0 0.0]
+
+
+  topurg(pose [ 0.000 0.000 0.000 0.000 ])
+
+)
+
+define floorplan model
+(
+  # sombre, sensible, artistic
+  color "gray30"
+
+  # most maps will need a bounding box
+  boundary 1
+
+  gui_nose 0
+
+  gui_outline 0
+  gripper_return 0
+  fiducial_return 0
+)
+
+# set the resolution of the underlying raytrace model in meters
+resolution 0.01
+
+interval_sim 100  # simulation timestep in milliseconds
+
+
+window
+( 
+  size [ 935 1132 ] 
+
+  rotate [ 0.000 0.000 ]
+  scale 74.715 
+)
+
+# load an environment bitmap
+floorplan
+( 
+  name "playground"
+  bitmap "map_1.pgm"
+  # bitmap "maze.png"
+  boundary 1
+  size [ 12.000 12.000 1.000 ]
+  # size [ 10.000 10.000 1.000 ]
+  pose [  0.000  0.000 0.000 0.000 ]
+  gui_move 0
+  gui_outline 0
+)
+
+
+# throw in a robot
+turtlebot()
