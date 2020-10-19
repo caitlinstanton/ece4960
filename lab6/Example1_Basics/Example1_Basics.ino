@@ -11,6 +11,7 @@
  * Distributed as-is; no warranty is given.
  ***************************************************************/
 #include "ICM_20948.h"  // Click here to get the library: http://librarymanager/All#SparkFun_ICM_20948_IMU
+#include "math.h"
 
 //#define USE_SPI       // Uncomment this to use SPI
 
@@ -30,6 +31,18 @@
   ICM_20948_I2C myICM;  // Otherwise create an ICM_20948_I2C object
 #endif
 
+float pitchAcc;
+float rollAcc;
+float alpha = 0.3;
+float pitchAccLPF;
+float prevPitchAcc = 0;
+float rollAccLPF;
+float prevRollAcc = 0;
+float pitchGyr = 0;
+float rollGyr = 0;
+float yawGyr = 0;
+unsigned long t0; // start time
+unsigned long delt = 0; // change in time
 
 void setup() {
 
@@ -64,17 +77,51 @@ void setup() {
 }
 
 void loop() {
-
+  t0 = micros(); // start time
   if( myICM.dataReady() ){
     myICM.getAGMT();                // The values are only updated when you call 'getAGMT'
 //    printRawAGMT( myICM.agmt );     // Uncomment this to see the raw values, taken directly from the agmt structure
-    //printScaledAGMT( myICM.agmt);   // This function takes into account the sclae settings from when the measurement was made to calculate the values with units
-    Serial.print(myICM.accX());
-    Serial.print(", ");
-    Serial.print(myICM.accY());
-    Serial.print(", ");
-    Serial.print(myICM.accZ());
-    Serial.println("");
+//    printScaledAGMT( myICM.agmt);   // This function takes into account the sclae settings from when the measurement was made to calculate the values with units
+//    
+    // PITCH
+    pitchAcc = getPitchAcc(myICM.accX(),myICM.accZ());
+    Serial.print(pitchAcc); 
+    Serial.print("\t");
+    pitchAccLPF = applyLPF(pitchAcc, prevPitchAcc, alpha);
+    Serial.print(pitchAccLPF); 
+    Serial.print("\t");
+    prevPitchAcc = prevAccLPF;
+    pitchGyr = getPitchGyr(pitchGyr, myICM.gyrX());
+    Serial.print(pitchGyr); 
+    Serial.print("\t");
+
+    // ROLL
+    rollAcc = getRollAcc(myICM.accY(),myICM.accZ());
+    Serial.print(rollAcc); 
+    Serial.print("\t");
+    rollAccLPF = applyLPF(rollAcc, prevRollAcc, alpha);
+    Serial.print(rollAccLPF); 
+    Serial.print("\t");
+    prevRollAcc = rollAccLPF;
+    rollGyr = getRollGyr(rollGyr, myICM.gyrY());
+    Serial.print(rollGyr); 
+    Serial.print("\t");
+
+    // YAW
+    yawGyr = getYawGyr(yawGyr, myICM.gyrZ());
+    Serial.print(yawGyr); 
+    Serial.print("\t");
+    
+//    Serial.print(myICM.accX());
+//    Serial.print(", ");
+//    Serial.print(myICM.accY());
+//    Serial.print(", ");
+//    Serial.print(myICM.accZ());
+//    Serial.print(",");
+    
+    delt = micros() - t0;    
+    //printFormattedFloat( delt, 5, 2 );  // print time between measurements to approximate sampling frequency
+    //Serial.println("");
     delay(30);
   }else{
     Serial.println("Waiting for data");
@@ -83,6 +130,25 @@ void loop() {
   
 }
 
+float getPitchAcc(float x, float z) {
+  return atan2(x,z)*180/M_PI;
+}
+
+float getRollAcc(float y, float z) {
+  return atan2(y,z)*180/M_PI;
+}
+
+float getPitchGyr(float prev, float x) {
+  return prev - x * (float)dt/1000000;  
+}
+
+float getRollGyr(float prev, float y) {
+  return prev - y * (float)dt/1000000;
+}
+
+float applyLPF(float curr, float prev, float alpha){
+  return alpha * curr + (1 - alpha) * prev;
+}
 
 // Below here are some helper functions to print the data nicely!
 
