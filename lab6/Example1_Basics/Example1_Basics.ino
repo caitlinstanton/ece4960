@@ -31,18 +31,29 @@
   ICM_20948_I2C myICM;  // Otherwise create an ICM_20948_I2C object
 #endif
 
-float pitchAcc;
-float rollAcc;
 float alpha = 0.3;
+unsigned long t0; // start time
+unsigned long dt = 0; // change in time
+
+float pitchAcc;
 float pitchAccLPF;
 float prevPitchAcc = 0;
+float pitchGyr = 0;
+float pitchFusion;
+float prevPitchFusion;
+
+float rollAcc;
 float rollAccLPF;
 float prevRollAcc = 0;
-float pitchGyr = 0;
 float rollGyr = 0;
+float rollFusion;
+float prevRollFusion;
+
 float yawGyr = 0;
-unsigned long t0; // start time
-unsigned long delt = 0; // change in time
+float xMag;
+float yMag;
+float yawMag;
+
 
 void setup() {
 
@@ -77,40 +88,59 @@ void setup() {
 }
 
 void loop() {
-  t0 = micros(); // start time
   if( myICM.dataReady() ){
+    t0 = micros(); // start time
     myICM.getAGMT();                // The values are only updated when you call 'getAGMT'
 //    printRawAGMT( myICM.agmt );     // Uncomment this to see the raw values, taken directly from the agmt structure
 //    printScaledAGMT( myICM.agmt);   // This function takes into account the sclae settings from when the measurement was made to calculate the values with units
 //    
     // PITCH
     pitchAcc = getPitchAcc(myICM.accX(),myICM.accZ());
-    Serial.print(pitchAcc); 
-    Serial.print("\t");
-    pitchAccLPF = applyLPF(pitchAcc, prevPitchAcc, alpha);
-    Serial.print(pitchAccLPF); 
-    Serial.print("\t");
-    prevPitchAcc = prevAccLPF;
-    pitchGyr = getPitchGyr(pitchGyr, myICM.gyrX());
-    Serial.print(pitchGyr); 
+    //Serial.print(pitchAcc); 
+    //Serial.print("\t");
+    pitchAccLPF = applyLPF(pitchAcc, prevPitchAcc, 0.2);
+    //Serial.print(pitchAccLPF); 
+    //Serial.print("\t");
+    prevPitchAcc = pitchAccLPF;
+    pitchGyr = getPitchGyr(pitchGyr, myICM.gyrY());
+    //Serial.print(pitchGyr); 
+    pitchFusion = (prevPitchFusion + pitchGyr * dt/1000000) * (1-alpha) + pitchAccLPF * alpha;
+    prevPitchFusion = pitchFusion; 
+    //Serial.print(pitchFusion);
     Serial.print("\t");
 
     // ROLL
-    rollAcc = getRollAcc(myICM.accY(),myICM.accZ());
-    Serial.print(rollAcc); 
-    Serial.print("\t");
+    rollAcc = -getRollAcc(myICM.accY(),myICM.accZ()); //flipped sign to be consistent with gyroscope data
+    //Serial.print(rollAcc); 
+    //Serial.print("\t");
     rollAccLPF = applyLPF(rollAcc, prevRollAcc, alpha);
-    Serial.print(rollAccLPF); 
-    Serial.print("\t");
+    //Serial.print(rollAccLPF); 
+    //Serial.print("\t");
     prevRollAcc = rollAccLPF;
-    rollGyr = getRollGyr(rollGyr, myICM.gyrY());
-    Serial.print(rollGyr); 
-    Serial.print("\t");
+    rollGyr = getRollGyr(rollGyr, myICM.gyrX());
+    //Serial.print(rollGyr); 
+    rollFusion = (prevRollFusion + rollGyr * dt/1000000) * (1-alpha) + rollAccLPF * alpha;
+    prevRollFusion = rollFusion;
+    //Serial.print(rollFusion);
+    //Serial.print("\t");
 
     // YAW
     yawGyr = getYawGyr(yawGyr, myICM.gyrZ());
     Serial.print(yawGyr); 
     Serial.print("\t");
+    //xMag = myICM.magX() * cos(pitchFusion * M_PI/180) - myICM.magY() * sin(rollFusion * M_PI/180) * sin(pitchFusion) + myICM.magZ() * cos(rollFusion * M_PI/180) * sin(pitchFusion * M_PI/180); //these were saying theta=pitch and roll=phi
+    //yMag = myICM.magY() * cos(rollFusion * M_PI/180) + myICM.magZ() * sin(rollFusion * M_PI/180);
+    //yawMag = getYawMag(xMag, yMag);
+
+    xMag = myICM.magX()*cos(pitchGyr*M_PI/180)-myICM.magZ()*sin(pitchGyr*M_PI/180);
+    yMag = myICM.magY()*sin(pitchGyr*M_PI/180)*sin(rollGyr*M_PI/180)-myICM.magY()*cos(rollGyr*M_PI/180)+myICM.magZ()*cos(pitchGyr*M_PI/180)*cos(rollGyr*M_PI/180);
+    //yawMag = atan2(myICM.magY(), myICM.magX())*180/M_PI;//atan2(yMag,xMag);
+    yawMag = atan2((myICM.magX()*cos(pitchFusion) + myICM.magZ()*sin(pitchFusion)), (myICM.magY()*cos(rollFusion) + myICM.magZ()*sin(rollFusion)));
+    
+    Serial.print(yawMag);
+    Serial.print("\t"); 
+
+    Serial.println("");
     
 //    Serial.print(myICM.accX());
 //    Serial.print(", ");
@@ -119,7 +149,7 @@ void loop() {
 //    Serial.print(myICM.accZ());
 //    Serial.print(",");
     
-    delt = micros() - t0;    
+    dt = micros() - t0;    
     //printFormattedFloat( delt, 5, 2 );  // print time between measurements to approximate sampling frequency
     //Serial.println("");
     delay(30);
@@ -144,6 +174,14 @@ float getPitchGyr(float prev, float x) {
 
 float getRollGyr(float prev, float y) {
   return prev - y * (float)dt/1000000;
+}
+
+float getYawGyr(float prev, float z) {
+  return prev - z * (float)dt/1000000;
+}
+
+float getYawMag(float xMag, float yMag) {
+  return atan2(yMag, xMag) * 180/M_PI;
 }
 
 float applyLPF(float curr, float prev, float alpha){
