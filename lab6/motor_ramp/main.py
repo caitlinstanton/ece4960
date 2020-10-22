@@ -27,6 +27,7 @@ async def robotTest(loop):
     # Otherwise, it's a struct of the form:
     # bytes(type + length + data)
     # This struct shouldn't be more than 99 bytes long.
+
     def simpleHandler(handle, value):
         global time  # This is apparently needed.
         if (value == "enq".encode()):
@@ -61,7 +62,8 @@ async def robotTest(loop):
             # Unpack from an example stream that transmits a 2-byte and a
             # 4-byte integer as quickly as possible, both little-endian.
             if (code == Commands.BYTESTREAM_TX.value):
-                print(unpack("<LBBff", data))
+                print(unpack("<LBf",
+                             data))  #unpacks 1 long, 2 chars and 2 floats
 
     async def checkMessages():
         while True:
@@ -100,20 +102,18 @@ async def robotTest(loop):
 
         # await client.write_gatt_char(Descriptors["RX_CHAR_UUID"].value, msg)
         async def myRobotTasks():
-            # pass
+            #pass
 
-            # await theRobot.ping()
+            #await theRobot.ping()
 
             # await theRobot.sendCommand(Commands.REQ_FLOAT)
-
+            await theRobot.sendCommand(Commands.START_BYTESTREAM_TX)
             # for i in range(0, 50):
             #     print("Sending message")
             #     await theRobot.sendMessage("Testing message")
             #     await asyncio.sleep(1)
 
             # await theRobot.testByteStream(25)
-
-            await theRobot.sendCommand(Commands.START_BYTESTREAM_TX)
 
         async def motorLoop():
             while True:

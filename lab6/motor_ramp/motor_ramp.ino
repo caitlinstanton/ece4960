@@ -9,15 +9,6 @@
 
   August 2020 Alex Coy Tailor for ECE 4960
 */
-// maximum length of reply / data message
-#define MAXREPLY 100
-#define TODO_VAL 0
-// buffer to reply to client
-uint8_t val[MAXREPLY];
-uint8_t *val_data = &val[2]; // start of optional data area
-uint8_t *val_len = &val[1];  // store length of optional data
-int packet_count = 0;
-
 /********************************************************************************************************************
                  INCLUDES
  *******************************************************************************************************************/
@@ -37,8 +28,18 @@ int packet_count = 0;
 #include <Wire.h>
 #include "SparkFun_VL53L1X.h" 
 #include "SparkFun_VCNL4040_Arduino_Library.h"
-#include "ICM_20948.h"  // Click here to get the library: http://librarymanager/All#SparkFun_ICM_20948_IMU
+#include "ICM_20948.h"  // \\\Click here to get the library: http://librarymanager/All#SparkFun_ICM_20948_IMU
 #include "math.h"
+
+// maximum length of reply / data message
+#define MAXREPLY 100
+#define TODO_VAL 0
+// buffer to reply to client
+uint8_t val[MAXREPLY];
+uint8_t *val_data = &val[2]; // start of optional data area
+uint8_t *val_len = &val[1];  // store length of optional data
+int packet_count = 0;
+
 /********************************************************************************************************************
                   OBJECTS
   *******************************************************************************************************************/
@@ -62,19 +63,18 @@ bt_debug_msg_t *bt_debug_tail = NULL;
 #define SHUTDOWN_PIN 2
 #define INTERRUPT_PIN 3
 
-SCMD myMotorDriver; //This creates the main object of one motor driver and connected slaves.
-VCNL4040 proximitySensor;
-SFEVL53L1X distanceSensor;
-
-//Uncomment the following line to use the optional shutdown and interrupt pins.
-//SFEVL53L1X distanceSensor(Wire, SHUTDOWN_PIN, INTERRUPT_PIN);
-
 present_t presentSensors = {
     .motorDriver = 0,
     .ToF_sensor = 0,
     .prox_sensor = 0,
     .IMU = 0};
 int bytestream_active = 0;
+
+//Uncomment the following line to use the optional shutdown and interrupt pins.
+//SFEVL53L1X distanceSensor(Wire, SHUTDOWN_PIN, INTERRUPT_PIN);
+SCMD myMotorDriver; //This creates the main object of one motor driver and connected slaves.
+VCNL4040 proximitySensor;
+SFEVL53L1X distanceSensor;
 
 //#define USE_SPI       // Uncomment this to use SPI
 
@@ -116,6 +116,12 @@ float yawGyr = 0;
 float xMag;
 float yMag;
 float yawMag;
+
+boolean motorRamp = false;
+unsigned char motorVal = 1; 
+int counterRamp = 0;
+int counterTransmit = 0;
+bool increase = true;
 
 /*************************************************************************************************/
 /*!
@@ -338,9 +344,9 @@ void backward() {
   myMotorDriver.setDrive(1,0,125); //drive left motor
 }
 
-void turnRight() {
-  myMotorDriver.setDrive(0,1,0); //drive right motor
-  myMotorDriver.setDrive(1,0,200); //drive left motor
+void turnRight(unsigned char speed) {
+  myMotorDriver.setDrive(0,1,speed); //drive right motor
+  myMotorDriver.setDrive(1,0,speed); //drive left motor
 }
 
 void stopWheels() {
@@ -353,8 +359,94 @@ void brakeForwards() {
   myMotorDriver.setDrive(1,0,255); //drive left motor
 }
 
+float getPitchAcc(float x, float z) {
+  return atan2(x,z)*180/M_PI;
+}
+
+float getRollAcc(float y, float z) {
+  return atan2(y,z)*180/M_PI;
+}
+
+float getPitchGyr(float prev, float x) {
+  return prev - x * (float)dt/1000000;  
+}
+
+float getRollGyr(float prev, float y) {
+  return prev - y * (float)dt/1000000;
+}
+
+float getYawGyr(float prev, float z) {
+  return prev - z * (float)dt/1000000;
+}
+
+float getYawMag(float xMag, float yMag) {
+  return atan2(yMag, xMag) * 180/M_PI;
+}
+
+float applyLPF(float curr, float prev, float alpha){
+  return alpha * curr + (1 - alpha) * prev;
+}
+
 void loop()
 {
+    if (motorRamp) {
+        t0 = micros(); // start time
+        counterRamp++;
+        //***** Operate the Motor Driver *****//
+        //  It uses .setDrive( motorName, direction, level ) to drive the motors.
+        Serial.println("here");
+        if(counterRamp>100)
+        {
+          // if its time for the next motor value, incease/decrease it
+          if(increase)
+          {
+            motorVal++;
+            Serial.println("increase");
+          }
+          else
+          {
+            motorVal--;
+            Serial.println("decrease");
+          }
+          counterRamp = 0;
+          if(motorVal == 255 || motorVal == 0)
+          {
+              increase = !increase; //switch direction if cant increase anymore
+          }
+        }
+        Serial.println("adjust");
+        turnRight(motorVal);
+
+        if( myICM.dataReady() ){
+          myICM.getAGMT();  
+          // PITCH
+          pitchAcc = getPitchAcc(myICM.accX(),myICM.accZ());
+          pitchAccLPF = applyLPF(pitchAcc, prevPitchAcc, 0.2);
+          prevPitchAcc = pitchAccLPF;
+          pitchGyr = getPitchGyr(pitchGyr, myICM.gyrY());
+          pitchFusion = (prevPitchFusion + pitchGyr * dt/1000000) * (1-alpha) + pitchAccLPF * alpha;
+          prevPitchFusion = pitchFusion; 
+      
+          // ROLL
+          rollAcc = -getRollAcc(myICM.accY(),myICM.accZ()); //flipped sign to be consistent with gyroscope data
+          rollAccLPF = applyLPF(rollAcc, prevRollAcc, alpha);
+          prevRollAcc = rollAccLPF;
+          rollGyr = getRollGyr(rollGyr, myICM.gyrX());
+          rollFusion = (prevRollFusion + rollGyr * dt/1000000) * (1-alpha) + rollAccLPF * alpha;
+          prevRollFusion = rollFusion;
+      
+          // YAW
+          yawGyr = getYawGyr(yawGyr, myICM.gyrZ());
+          xMag = myICM.magX()*cos(pitchGyr*M_PI/180)-myICM.magZ()*sin(pitchGyr*M_PI/180);
+          yMag = myICM.magY()*sin(pitchGyr*M_PI/180)*sin(rollGyr*M_PI/180)-myICM.magY()*cos(rollGyr*M_PI/180)+myICM.magZ()*cos(pitchGyr*M_PI/180)*cos(rollGyr*M_PI/180);
+          yawMag = atan2((myICM.magX()*cos(pitchFusion) + myICM.magZ()*sin(pitchFusion)), (myICM.magY()*cos(rollFusion) + myICM.magZ()*sin(rollFusion)));
+        }else{
+          Serial.println("Waiting for data");
+          delay(500);
+        }
+    }
+    
+    counterTransmit++; 
     //Serial.println("Loop...."); //KHE Loops constantly....no delays
 
     if (l_Rcvd > 1) //Check if we have a new message from amdtps_main.c through BLE_example_funcs.cpp
@@ -380,7 +472,6 @@ void loop()
         case SET_MOTORS:
 
             Serial.println("Placeholder: Set Motors");
-
             break;
         case GET_MOTORS:
 
@@ -405,9 +496,12 @@ void loop()
             amdtpsSendData(m_Rcvd, l_Rcvd);
             break;
         case START_BYTESTREAM_TX:
-            bytestream_active = 1;
-            //Serial.printf("Start bytestream with active %d \n", bytestream_active);
+            bytestream_active = (int)cmd->data[0];
+            Serial.printf("Start bytestream with active %d \n", bytestream_active);
             ((uint32_t *)res_cmd->data)[0] = 0;
+            bytestream_active = 1;
+            motorRamp = true;
+            
             break;
         case STOP_BYTESTREAM_TX:
             bytestream_active = 0;
@@ -445,67 +539,30 @@ void loop()
         printOverBluetooth("Message Received.");
     }
 
-    if (bytestream_active) {
-  
-      res_cmd->command_type = BYTESTREAM_TX;  //set command type to bytestream transmit
-      res_cmd->length = 14;                    //length doesn't matter since the handler will take care of this
-      //TODO: Put an example of a 32-bit integer and a 64-bit integer
-      //for the stream. Be sure to add a corresponding case in the python program.
-      //Serial.printf("Stream %d \n", bytestream_active);
-      
-      ((uint32_t *)(res_cmd->data))[0] = 32;  //put a 32 bit integer into data to send (4 bytes)
-      
-      uint64_t num = 64;
-      memcpy(res_cmd->data+4, &num, 8);       //put a 64 bit integer into data to send (8 bytes)
-
-      // send a little data
-      //amdtpsSendData((uint8_t *)res_cmd, 14);  //2 bytes for type and length, 12 bytes of data
-
-      
-    
-      // send a lot of data
-      uint64_t num2 = 32;
-      memcpy(res_cmd->data+12, &num2, 8);       //put a 64 bit integer into data to send (8 bytes)
-      uint64_t num3 = 48;
-      memcpy(res_cmd->data+20, &num3, 8);       //put a 64 bit integer into data to send (8 bytes)
-      uint64_t num4 = 16;
-      memcpy(res_cmd->data+28, &num4, 8);       //put a 64 bit integer into data to send (8 bytes)
-      uint64_t num5 = 20;
-      memcpy(res_cmd->data+36, &num5, 8);       //put a 64 bit integer into data to send (8 bytes)
-      uint64_t num6 = 24;
-      memcpy(res_cmd->data+44, &num6, 6);       //put a 64 bit integer into data to send (8 bytes)     
-      uint64_t num7 = 70;
-      memcpy(res_cmd->data+52, &num7, 8);       //put a 64 bit integer into data to send (8 bytes)
-      uint64_t num8 = 70;
-      amdtpsSendData((uint8_t *)res_cmd, 70);  //2 bytes for type and length, 68 bytes of data
-      
+    if (bytestream_active)
+    {
+        if(counterTransmit>=20) //no need to send ALL the data
+        {
+          res_cmd->command_type = BYTESTREAM_TX;  //set command type to bytestream transmit
+          res_cmd->length = 11;                    //length doesn't matter since the handler will take care of this
+          //TODO: Put an example of a 32-bit integer and a 64-bit integer
+          //for the stream. Be sure to add a corresponding case in the
+          //python program.
+          //Serial.printf("Stream %d \n", bytestream_active);
+       
+          // pack up data to send
+          unsigned long t=micros(); //send current time for x axis
+          memcpy(res_cmd->data, &t, 4); 
+          memcpy(res_cmd->data+4, &motorVal, 1);
+          memcpy(res_cmd->data+5, &yawGyr, 4);
+          amdtpsSendData((uint8_t *)res_cmd, 11);  //2 bytes for type and length, 14 bytes of data
+          counterTransmit = 0;
+        }
       //Print time
       unsigned long t = micros();
       Serial.printf("Packet %d sent at %d micro seconds \n", packet_count, t);
       packet_count++;
     }
-
     trigger_timers();
-
-    // Disable interrupts.
-
-    /*
-    //Uncomment this if you want the board to go to sleep and be woken up
-    //by Timer2. Not good for instruction streaming!
-
-    am_hal_interrupt_master_disable();
-
-    //
-    // Check to see if the WSF routines are ready to go to sleep.
-    //
-    if (wsfOsReadyToSleep())
-    {
-        am_hal_sysctrl_sleep(AM_HAL_SYSCTRL_SLEEP_DEEP);
-    }
-    // Loop stops here on sleep and wakes on Timer2 interrupt, runs about 30 loops, then sleeps again.
-    // An interrupt woke us up so now enable them and take it.
-    am_hal_interrupt_master_enable();
-    */
-
-    delay(10);
+    dt = micros() - t0;  
 } //END LOOP
