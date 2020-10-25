@@ -68,31 +68,6 @@ void setup(void)
   distanceSensor.startRanging(); //just continue ranging the whole time to save time turning it on/off
 }
 
-void forward() {
-  myMotorDriver.setDrive(0,1,100); //drive right motor
-  myMotorDriver.setDrive(1,1,125); //drive left motor
-}
-
-void backward() {
-  myMotorDriver.setDrive(0,0,100); //drive right motor
-  myMotorDriver.setDrive(1,0,125); //drive left motor
-}
-
-void turnRight() {
-  myMotorDriver.setDrive(0,1,0); //drive right motor
-  myMotorDriver.setDrive(1,0,200); //drive left motor
-}
-
-void stopWheels() {
-  myMotorDriver.setDrive(0,1,0); //drive right motor
-  myMotorDriver.setDrive(1,1,0); //drive left motor
-}
-
-void brakeForwards() {
-  myMotorDriver.setDrive(0,0,255); //drive right motor
-  myMotorDriver.setDrive(1,0,255); //drive left motor
-}
-
 void loop(void)
 {
   while (!distanceSensor.checkForDataReady())
@@ -103,13 +78,13 @@ void loop(void)
   unsigned int proxValue = proximitySensor.getProximity();  //Get result from prox sensor
   distanceSensor.clearInterrupt();
 
-//  Serial.print("Distance(mm): ");
-//  Serial.print(distance);
-//  Serial.print(", ");
-//  Serial.print(distanceSensor.getRangeStatus());
-//  Serial.print("\tProx: ");
-//  Serial.print(proxValue);
-//  Serial.print("\n");
+  Serial.print("Distance(mm): ");
+  Serial.print(distance);
+  Serial.print(", ");
+  Serial.print(distanceSensor.getRangeStatus());
+  Serial.print("\tProx: ");
+  Serial.print(proxValue);
+  Serial.print("\n");
   
   byte rangeStatus = distanceSensor.getRangeStatus();
   if(rangeStatus==0)  //only act if sensor reading was good
