@@ -117,8 +117,8 @@ float xMag;
 float yMag;
 float yawMag;
 
-float distance = 0;
-float proxValue = 0;
+int distance = 0;
+unsigned int proxValue = 0;
 
 int counterTransmit = 0;
 
@@ -460,26 +460,6 @@ void loop()
     
         if( myICM.dataReady() ){
           myICM.getAGMT();  
-
-          res_cmd->command_type = GIVE_FLOAT;  //set command type to bytestream transmit
-          res_cmd->length = 4;                    //length doesn't matter since the handler will take care of this
-          
-          float t=micros(); //send current time for x axis
-          memcpy(res_cmd->data, &t, 4); 
-          amdtpsSendData((uint8_t *)res_cmd, 6);  //2 bytes for type and length, 4 bytes of data
-
-          distance = distanceSensor.getDistance(); //Get the result of the measurement from the ToF sensor
-          res_cmd->command_type = GIVE_FLOAT;  //set command type to bytestream transmit
-          res_cmd->length = 4;                    //length doesn't matter since the handler will take care of this
-          memcpy(res_cmd->data, &distance, 4);
-          amdtpsSendData((uint8_t *)res_cmd, 6);  //2 bytes for type and length, 4 bytes of data
-          distanceSensor.clearInterrupt();
-          
-          proxValue = proximitySensor.getProximity();  //Get result from prox sensor
-          res_cmd->command_type = GIVE_FLOAT;  //set command type to bytestream transmit
-          res_cmd->length = 4;                    //length doesn't matter since the handler will take care of this
-          memcpy(res_cmd->data, &proxValue, 4);
-          amdtpsSendData((uint8_t *)res_cmd, 6);  //2 bytes for type and length, 4 bytes of data
           
           // PITCH
           pitchAcc = getPitchAcc(myICM.accX(),myICM.accZ());
@@ -488,10 +468,6 @@ void loop()
           pitchGyr = getPitchGyr(pitchGyr, myICM.gyrY());
           pitchFusion = (prevPitchFusion + pitchGyr * dt/1000000) * (1-alpha) + pitchAccLPF * alpha;
           prevPitchFusion = pitchFusion; 
-          res_cmd->command_type = GIVE_FLOAT;  //set command type to bytestream transmit
-          res_cmd->length = 4;                    //length doesn't matter since the handler will take care of this
-          memcpy(res_cmd->data, &pitchFusion, 4);
-          amdtpsSendData((uint8_t *)res_cmd, 6);  //2 bytes for type and length, 4 bytes of data
       
           // ROLL
           rollAcc = -getRollAcc(myICM.accY(),myICM.accZ()); //flipped sign to be consistent with gyroscope data
@@ -500,17 +476,16 @@ void loop()
           rollGyr = getRollGyr(rollGyr, myICM.gyrX());
           rollFusion = (prevRollFusion + rollGyr * dt/1000000) * (1-alpha) + rollAccLPF * alpha;
           prevRollFusion = rollFusion;
-          res_cmd->command_type = GIVE_FLOAT;  //set command type to bytestream transmit
-          res_cmd->length = 4;                    //length doesn't matter since the handler will take care of this
-          memcpy(res_cmd->data, &rollFusion, 4);
-          amdtpsSendData((uint8_t *)res_cmd, 6);  //2 bytes for type and length, 4 bytes of data
       
           // YAW
           yawGyr = getYawGyr(yawGyr, myICM.gyrZ());
-          res_cmd->command_type = GIVE_FLOAT;  //set command type to bytestream transmit
-          res_cmd->length = 4;                    //length doesn't matter since the handler will take care of this
-          memcpy(res_cmd->data, &yawGyr, 4);
-          amdtpsSendData((uint8_t *)res_cmd, 6);  //2 bytes for type and length, 4 bytes of data
+          xMag = myICM.magX()*cos(pitchGyr*M_PI/180)-myICM.magZ()*sin(pitchGyr*M_PI/180);
+          yMag = myICM.magY()*sin(pitchGyr*M_PI/180)*sin(rollGyr*M_PI/180)-myICM.magY()*cos(rollGyr*M_PI/180)+myICM.magZ()*cos(pitchGyr*M_PI/180)*cos(rollGyr*M_PI/180);
+          yawMag = atan2((myICM.magX()*cos(pitchFusion) + myICM.magZ()*sin(pitchFusion)), (myICM.magY()*cos(rollFusion) + myICM.magZ()*sin(rollFusion)));
+          
+          distance = distanceSensor.getDistance(); //Get the result of the measurement from the ToF sensor
+          proxValue = proximitySensor.getProximity();  //Get result from prox sensor
+          distanceSensor.clearInterrupt();
     
           Serial.print(micros());
           Serial.print(", ");
@@ -524,6 +499,23 @@ void loop()
           Serial.print(", ");
           Serial.print(yawGyr);
           Serial.print("\n");
+
+          res_cmd->command_type = BYTESTREAM_TX;  //set command type to bytestream transmit
+          res_cmd->length = 26;                    //length doesn't matter since the handler will take care of this
+          //TODO: Put an example of a 32-bit integer and a 64-bit integer
+          //for the stream. Be sure to add a corresponding case in the
+          //python program.
+          //Serial.printf("Stream %d \n", bytestream_active);
+       
+          // pack up data to send
+          unsigned long t=micros(); //send current time for x axis
+          memcpy(res_cmd->data, &t, 4); 
+          memcpy(res_cmd->data+4, &distance, 4);
+          memcpy(res_cmd->data+8, &proxValue, 4);
+          memcpy(res_cmd->data+12, &pitchFusion, 4);
+          memcpy(res_cmd->data+16, &rollFusion, 4);
+          memcpy(res_cmd->data+20, &yawGyr, 4);
+          amdtpsSendData((uint8_t *)res_cmd, 26);  //2 bytes for type and length, 14 bytes of data
         }else{
           Serial.println("Waiting for data");
           delay(500);
