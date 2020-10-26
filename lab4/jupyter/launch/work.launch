@@ -1,0 +1,5 @@
+<launch>
+  <node type="stageros_lab4" name="stage_sim" pkg="lab4" args="-d $(find lab4)/world/playground.world">
+    <param name="base_watchdog_timeout" type="double" value="300.0" />
+  </node>
+</launch>
