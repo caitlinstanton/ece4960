@@ -1,0 +1,13 @@
+<launch>
+  <node type="stageros_lab8" name="stage_sim" pkg="lab8" args="-d $(find lab8)/world/playground.world">
+    <param name="base_watchdog_timeout" type="double" value="300.0" />
+  </node>
+  <node type="plotter.py" name="plotter" pkg="lab8" >
+  </node>
+  <rosparam>
+    INTEGRATION_ERROR_MAX_X: 0.09
+    INTEGRATION_ERROR_MAX_Y: 0.09
+    INTEGRATION_ERROR_MAX_Z: 0.0
+    INTEGRATION_ERROR_MAX_A: 0.15
+  </rosparam>
+</launch>

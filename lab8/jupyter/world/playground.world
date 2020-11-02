@@ -1,0 +1,41 @@
+include "models.world"
+
+# Set the resolution of the underlying raytrace model in meters
+resolution 0.01
+
+# Simulation timestep in milliseconds
+interval_sim 100  
+
+# Define the simulator window
+window
+( 
+  size [ 838 508 ] 
+
+  rotate [ 0.000 0.000 ]
+  scale 74.715 
+)
+
+# Load an environment with an empty background
+floorplan
+( 
+  name "playground"
+  bitmap "empty.pgm"
+  boundary 0
+  size [ 10.000 10.000 1.000 ]
+  # size [ 10.000 10.000 1.000 ]
+  pose [  0.000  0.000 0.000 0.000 ]
+  gui_move 0
+  gui_outline 0
+)
+
+# Initialize your robot at pose (0,0,0)
+turtlebot(pose [ 0.000 0.000 0.000 0.000 ])
+
+# Map configuration
+model(pose [-0.500 -1.000 0.000 0.000] size [1.000 0.002 0.500])
+model(pose [0.500 0.500 0.000 135.000] size [1.414 0.002 0.500])
+model(pose [-1.250 1.500 0.000 63.435] size [1.118 0.002 0.500])
+model(pose [0.000 2.000 0.000 0.000] size [4.000 0.002 0.500])
+model(pose [2.000 0.000 0.000 -90.000] size [4.000 0.002 0.500])
+model(pose [0.000 -2.000 0.000 180.000] size [4.000 0.002 0.500])
+model(pose [-2.000 0.000 0.000 90.000] size [4.000 0.002 0.500])
