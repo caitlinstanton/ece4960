@@ -273,11 +273,11 @@ void loop() {
 
 
     Input    = myICM.gyrZ();
-    Setpoint = 50;
+    Setpoint = 60;
     
     myPID.Compute(); //compute Output for motors
-    //if(Output>210) motorVal = 210;
-    if (Output<100) motorVal = 100;
+    if(Output>100) motorVal = 100;
+    //if (Output<50) motorVal = 100;
     else motorVal = Output;
     myMotorDriver.setDrive( 1, 1, motorVal); 
     myMotorDriver.setDrive( 0, 1, motorVal);
