@@ -44,7 +44,10 @@ void setup(void)
       ;
   }
   Serial.println("Sensor online!");
-  distanceSensor.setOffset(41);
+  distanceSensor.setOffset(36);
+  distanceSensor.setDistanceModeLong();
+  Serial.println(distanceSensor.getDistanceMode());
+  //distanceSensor.setTimingBudgetInMs(20);
 }
 
 void loop(void)
