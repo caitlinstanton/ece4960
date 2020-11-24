@@ -1,0 +1,242 @@
+ > Lab Work Directory: /home/artemis/catkin_ws/src/
+------- STEP: 1 -------
+Archive:  lab9.zip
+   creating: /home/artemis/catkin_ws/src/lab9/
+   creating: /home/artemis/catkin_ws/src/lab9/launch/
+  inflating: /home/artemis/catkin_ws/src/lab9/launch/work.launch  
+  inflating: /home/artemis/catkin_ws/src/lab9/CMakeLists.txt  
+   creating: /home/artemis/catkin_ws/src/lab9/include/
+   creating: /home/artemis/catkin_ws/src/lab9/include/lab9/
+   creating: /home/artemis/catkin_ws/src/lab9/srv/
+  inflating: /home/artemis/catkin_ws/src/lab9/srv/MapInit.srv  
+  inflating: /home/artemis/catkin_ws/src/lab9/srv/ProbDist.srv  
+   creating: /home/artemis/catkin_ws/src/lab9/src/
+  inflating: /home/artemis/catkin_ws/src/lab9/src/plotter.py  
+  inflating: /home/artemis/catkin_ws/src/lab9/src/teleop_keyboard.py  
+  inflating: /home/artemis/catkin_ws/src/lab9/src/stageros_lab9.cpp  
+   creating: /home/artemis/catkin_ws/src/lab9/msg/
+  inflating: /home/artemis/catkin_ws/src/lab9/msg/PlotPoint.msg  
+  inflating: /home/artemis/catkin_ws/src/lab9/msg/PlotPose.msg  
+  inflating: /home/artemis/catkin_ws/src/lab9/msg/SimPose.msg  
+  inflating: /home/artemis/catkin_ws/src/lab9/msg/MapPoints.msg  
+  inflating: /home/artemis/catkin_ws/src/lab9/package.xml  
+   creating: /home/artemis/catkin_ws/src/lab9/scripts/
+  inflating: /home/artemis/catkin_ws/src/lab9/scripts/robot_interface.py  
+  inflating: /home/artemis/catkin_ws/src/lab9/scripts/lab9_real.ipynb  
+  inflating: /home/artemis/catkin_ws/src/lab9/scripts/Traj.py  
+  inflating: /home/artemis/catkin_ws/src/lab9/scripts/lab9_doc.ipynb  
+  inflating: /home/artemis/catkin_ws/src/lab9/scripts/lab9_sim.ipynb  
+  inflating: /home/artemis/catkin_ws/src/lab9/scripts/teleop_real_robot.py  
+  inflating: /home/artemis/catkin_ws/src/lab9/scripts/loc_utils.py  
+  inflating: /home/artemis/catkin_ws/src/lab9/scripts/plotter_config.ini  
+   creating: /home/artemis/catkin_ws/src/lab9/world/
+  inflating: /home/artemis/catkin_ws/src/lab9/world/empty.pgm  
+  inflating: /home/artemis/catkin_ws/src/lab9/world/models.world  
+  inflating: /home/artemis/catkin_ws/src/lab9/world/playground.world  
+  inflating: /home/artemis/catkin_ws/src/lab9/world/maze.png  
+  inflating: /home/artemis/catkin_ws/src/lab9/world/map_1.pgm  
+------- STEP: 2 -------
+
+source /opt/ros/melodic/setup.bash
+source /home/artemis/catkin_ws/devel/setup.bash
+
+source ~/.bash_aliases
+--- ls:
+-rwxr-x--- 1 artemis artemis 480 Nov  5 10:44 /home/artemis/.bash_aliases
+--- cat:
+alias lab3-manager="mon launch lab3 work.launch --no-start"
+alias lab4-manager="mon launch lab4 work.launch --no-start"
+alias lab5-manager="mon launch lab5 work.launch --no-start"
+alias lab6-manager="mon launch lab6 work.launch --no-start"
+alias lab7-manager="mon launch lab7 work.launch --no-start"
+alias lab8-manager="mon launch lab8 work.launch --no-start"
+alias lab9-manager="mon launch lab9 work.launch --no-start"
+alias robot-keyboard-teleop="rosrun lab9 teleop_keyboard.py"
+------- STEP: 3 -------
+-- Using CATKIN_DEVEL_PREFIX: /home/artemis/catkin_ws/devel
+-- Using CMAKE_PREFIX_PATH: /home/artemis/catkin_ws/devel;/opt/ros/melodic
+-- This workspace overlays: /home/artemis/catkin_ws/devel;/opt/ros/melodic
+-- Found PythonInterp: /usr/bin/python2 (found suitable version "2.7.17", minimum required is "2") 
+-- Using PYTHON_EXECUTABLE: /usr/bin/python2
+-- Using Debian Python package layout
+-- Using empy: /usr/bin/empy
+-- Using CATKIN_ENABLE_TESTING: ON
+-- Call enable_testing()
+-- Using CATKIN_TEST_RESULTS_DIR: /home/artemis/catkin_ws/build/test_results
+-- Found gtest sources under '/usr/src/googletest': gtests will be built
+-- Found gmock sources under '/usr/src/googletest': gmock will be built
+-- Found PythonInterp: /usr/bin/python2 (found version "2.7.17") 
+-- Using Python nosetests: /usr/bin/nosetests-2.7
+-- catkin 0.7.28
+-- BUILD_SHARED_LIBS is on
+-- BUILD_SHARED_LIBS is on
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- ~~  traversing 2 packages in topological order:
+-- ~~  - lab8
+-- ~~  - lab9
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- +++ processing catkin package: 'lab8'
+-- ==> add_subdirectory(lab8)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Boost version: 1.65.1
+-- Found the following Boost libraries:
+--   system
+--   thread
+--   chrono
+--   date_time
+--   atomic
+-- lab8: 4 messages, 2 services
+-- +++ processing catkin package: 'lab9'
+-- ==> add_subdirectory(lab9)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Boost version: 1.65.1
+-- Found the following Boost libraries:
+--   system
+--   thread
+--   chrono
+--   date_time
+--   atomic
+-- lab9: 4 messages, 2 services
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/artemis/catkin_ws/build
+[  0%] Built target actionlib_generate_messages_cpp
+[  0%] Built target tf_generate_messages_py
+[  0%] Built target roscpp_generate_messages_cpp
+[  0%] Built target sensor_msgs_generate_messages_nodejs
+[  0%] Built target rosgraph_msgs_generate_messages_lisp
+[  0%] Built target rosgraph_msgs_generate_messages_cpp
+[  0%] Built target actionlib_msgs_generate_messages_py
+[  0%] Built target geometry_msgs_generate_messages_eus
+[  0%] Built target actionlib_msgs_generate_messages_lisp
+[  0%] Built target sensor_msgs_generate_messages_py
+[  0%] Built target _lab8_generate_messages_check_deps_MapPoints
+[  0%] Built target _lab8_generate_messages_check_deps_SimPose
+[  0%] Built target geometry_msgs_generate_messages_py
+[  0%] Built target std_msgs_generate_messages_py
+[  0%] Built target _lab8_generate_messages_check_deps_PlotPose
+[  0%] Built target nav_msgs_generate_messages_py
+[  0%] Built target _lab8_generate_messages_check_deps_MapInit
+[  0%] Built target _lab8_generate_messages_check_deps_ProbDist
+[  0%] Built target _lab8_generate_messages_check_deps_PlotPoint
+[  0%] Built target sensor_msgs_generate_messages_lisp
+[  0%] Built target roscpp_generate_messages_py
+[  0%] Built target nav_msgs_generate_messages_cpp
+[  0%] Built target roscpp_generate_messages_eus
+[  0%] Built target actionlib_msgs_generate_messages_eus
+[  0%] Built target rosgraph_msgs_generate_messages_py
+[  0%] Built target rosgraph_msgs_generate_messages_nodejs
+[  0%] Built target std_msgs_generate_messages_nodejs
+[  0%] Built target geometry_msgs_generate_messages_lisp
+[  0%] Built target geometry_msgs_generate_messages_nodejs
+[  0%] Built target nav_msgs_generate_messages_nodejs
+[  0%] Built target actionlib_msgs_generate_messages_nodejs
+[  0%] Built target sensor_msgs_generate_messages_eus
+[  0%] Built target sensor_msgs_generate_messages_cpp
+[  0%] Built target roscpp_generate_messages_nodejs
+[  0%] Built target std_msgs_generate_messages_lisp
+[  0%] Built target nav_msgs_generate_messages_lisp
+[  0%] Built target std_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_eus
+[  0%] Built target rosgraph_msgs_generate_messages_eus
+[  0%] Built target std_srvs_generate_messages_cpp
+[  0%] Built target std_srvs_generate_messages_lisp
+[  0%] Built target std_srvs_generate_messages_nodejs
+[  0%] Built target geometry_msgs_generate_messages_cpp
+[  0%] Built target actionlib_generate_messages_lisp
+[  0%] Built target actionlib_msgs_generate_messages_cpp
+[  0%] Built target std_srvs_generate_messages_py
+[  0%] Built target tf_generate_messages_eus
+[  0%] Built target tf_generate_messages_lisp
+[  0%] Built target tf_generate_messages_nodejs
+[  0%] Built target actionlib_generate_messages_eus
+[  0%] Built target actionlib_generate_messages_nodejs
+[  0%] Built target tf_generate_messages_cpp
+[  0%] Built target tf2_msgs_generate_messages_cpp
+[  0%] Built target nav_msgs_generate_messages_eus
+[  0%] Built target tf2_msgs_generate_messages_eus
+[  0%] Built target tf2_msgs_generate_messages_lisp
+[  0%] Built target actionlib_generate_messages_py
+[  0%] Built target tf2_msgs_generate_messages_py
+[  0%] Built target tf2_msgs_generate_messages_nodejs
+[  8%] Built target lab8_generate_messages_cpp
+[  8%] Built target std_srvs_generate_messages_eus
+[  8%] Built target roscpp_generate_messages_lisp
+[ 18%] Built target lab8_generate_messages_eus
+Scanning dependencies of target _lab9_generate_messages_check_deps_SimPose
+[ 27%] Built target lab8_generate_messages_lisp
+Scanning dependencies of target _lab9_generate_messages_check_deps_PlotPoint
+[ 27%] Built target _lab9_generate_messages_check_deps_SimPose
+Scanning dependencies of target _lab9_generate_messages_check_deps_MapInit
+[ 27%] Built target _lab9_generate_messages_check_deps_PlotPoint
+Scanning dependencies of target _lab9_generate_messages_check_deps_MapPoints
+[ 27%] Built target _lab9_generate_messages_check_deps_MapInit
+Scanning dependencies of target _lab9_generate_messages_check_deps_ProbDist
+[ 27%] Built target _lab9_generate_messages_check_deps_MapPoints
+Scanning dependencies of target _lab9_generate_messages_check_deps_PlotPose
+[ 27%] Built target _lab9_generate_messages_check_deps_ProbDist
+[ 27%] Built target _lab9_generate_messages_check_deps_PlotPose
+[ 38%] Built target lab8_generate_messages_py
+Scanning dependencies of target lab9_generate_messages_py
+[ 47%] Built target lab8_generate_messages_nodejs
+[ 48%] Generating Python from MSG lab9/MapPoints
+[ 50%] Generating Python from MSG lab9/SimPose
+[ 52%] Generating Python from MSG lab9/PlotPoint
+[ 52%] Generating Python from MSG lab9/PlotPose
+[ 54%] Generating Python code from SRV lab9/MapInit
+[ 55%] Generating Python code from SRV lab9/ProbDist
+Scanning dependencies of target lab9_generate_messages_lisp
+[ 57%] Generating Python msg __init__.py for lab9
+[ 58%] Generating Lisp code from lab9/MapPoints.msg
+[ 60%] Generating Lisp code from lab9/SimPose.msg
+[ 61%] Generating Python srv __init__.py for lab9
+[ 62%] Generating Lisp code from lab9/PlotPoint.msg
+[ 64%] Generating Lisp code from lab9/PlotPose.msg
+[ 65%] Generating Lisp code from lab9/MapInit.srv
+[ 65%] Built target lab9_generate_messages_py
+[ 67%] Generating Lisp code from lab9/ProbDist.srv
+Scanning dependencies of target lab9_generate_messages_cpp
+[ 68%] Generating C++ code from lab9/MapPoints.msg
+[ 68%] Built target lab9_generate_messages_lisp
+[ 70%] Generating C++ code from lab9/SimPose.msg
+Scanning dependencies of target lab9_generate_messages_eus
+[ 71%] Generating EusLisp code from lab9/MapPoints.msg
+[ 72%] Generating C++ code from lab9/PlotPoint.msg
+[ 74%] Generating EusLisp code from lab9/SimPose.msg
+[ 77%] Generating EusLisp code from lab9/PlotPoint.msg
+[ 77%] Generating C++ code from lab9/PlotPose.msg
+[ 78%] Generating EusLisp code from lab9/PlotPose.msg
+[ 80%] Generating EusLisp code from lab9/MapInit.srv
+[ 81%] Generating C++ code from lab9/MapInit.srv
+[ 82%] Generating EusLisp code from lab9/ProbDist.srv
+[ 84%] Generating EusLisp manifest code for lab9
+[ 85%] Generating C++ code from lab9/ProbDist.srv
+[ 85%] Built target lab9_generate_messages_cpp
+Scanning dependencies of target lab9_generate_messages_nodejs
+[ 87%] Generating Javascript code from lab9/MapPoints.msg
+[ 88%] Generating Javascript code from lab9/SimPose.msg
+[ 90%] Generating Javascript code from lab9/PlotPoint.msg
+[ 90%] Built target lab9_generate_messages_eus
+[ 91%] Generating Javascript code from lab9/PlotPose.msg
+[ 92%] Generating Javascript code from lab9/MapInit.srv
+[ 94%] Generating Javascript code from lab9/ProbDist.srv
+[ 97%] Built target stageros_lab8
+[ 97%] Built target lab8_generate_messages
+[ 97%] Built target lab9_generate_messages_nodejs
+Scanning dependencies of target lab9_generate_messages
+[ 97%] Built target lab9_generate_messages
+Scanning dependencies of target stageros_lab9
+[ 98%] Building CXX object lab9/CMakeFiles/stageros_lab9.dir/src/stageros_lab9.cpp.o
+[100%] Linking CXX executable /home/artemis/catkin_ws/devel/lib/lab9/stageros_lab9
+[100%] Built target stageros_lab9
+Base path: /home/artemis/catkin_ws
+Source space: /home/artemis/catkin_ws/src
+Build space: /home/artemis/catkin_ws/build
+Devel space: /home/artemis/catkin_ws/devel
+Install space: /home/artemis/catkin_ws/install
+####
+#### Running command: "cmake /home/artemis/catkin_ws/src -DCATKIN_DEVEL_PREFIX=/home/artemis/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/artemis/catkin_ws/install -G Unix Makefiles" in "/home/artemis/catkin_ws/build"
+####
+####
+#### Running command: "make -j2 -l2" in "/home/artemis/catkin_ws/build"
+####
