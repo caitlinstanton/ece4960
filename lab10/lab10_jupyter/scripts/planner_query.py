@@ -87,6 +87,7 @@ class PlannerQuery():
         if(plot):
             plt.imshow(self.img_mask)
             plt.show()
+            
 
     def get_random_index(self):
         """Get a random free cell index within the contour
@@ -195,7 +196,6 @@ class PlannerQuery():
             goal_cell [(int, int)]: Goal cell in the grid
         """
         output_img = cv2.cvtColor(np.copy(self.grid)*255,cv2.COLOR_GRAY2RGB)
-        print("output")
         start_cell = self.get_start_cell()
         goal_cell = self.get_goal_cell(start_cell)
         
@@ -215,6 +215,7 @@ class PlannerQuery():
             output_img[goal_cell] = [0,255,0]
             plt.imshow(output_img)
             plt.show()
+            plt.savefig('grid.png')
         
         return start_cell, goal_cell
 

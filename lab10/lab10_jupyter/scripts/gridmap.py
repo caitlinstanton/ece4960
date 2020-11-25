@@ -170,7 +170,7 @@ class OccupancyGridMap:
         x_index = int(round(x/self.cell_size))
         y_index = int(round(y/self.cell_size))
 
-        return x_index, y_index
+        return y_index, x_index #swapped because x axis is up/down, y axis is left/right
 
     def get_coordinates_from_index(self, x_index, y_index):
         """
@@ -184,7 +184,7 @@ class OccupancyGridMap:
 
         return x, y
 
-    def plot(self, alpha=1, min_val=0, origin='lower'):
+    def plot(self, alpha=1, min_val=0, origin='upper'):
         """
         plot the grid map
         """
@@ -202,5 +202,17 @@ class OccupancyGridMap:
         ogm_data = png_to_ogm(filename, normalized=True)
         ogm_data_arr = numpy.array(ogm_data)
         ogm = OccupancyGridMap(ogm_data_arr, cell_size)
+
+        return ogm
+    
+    @staticmethod
+    def from_data(data, cell_size):
+        """
+        Create an OccupancyGridMap from a png image
+        :param data: 2D numpy occupancy array
+        :param cell_size: the image pixel size in meters
+        :return: the created OccupancyGridMap
+        """
+        ogm = OccupancyGridMap(data, cell_size)
 
         return ogm

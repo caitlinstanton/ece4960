@@ -48,6 +48,7 @@ def a_star(start_m, goal_m, gmap, movement='8N', occupancy_cost_factor=3):
     start = gmap.get_index_from_coordinates(start_m[0], start_m[1])
     goal = gmap.get_index_from_coordinates(goal_m[0], goal_m[1])
 
+
     # check if start and goal nodes correspond to free spaces
     if gmap.is_occupied_idx(start):
         raise Exception('Start node is not traversable')
