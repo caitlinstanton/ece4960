@@ -8,10 +8,7 @@ def _get_movements_4n():
     Get all possible 4-connectivity movements.
     :return: list of movements with cost [(dx, dy, movement_cost)]
     """
-    return [(1, 0, 1.0),
-            (0, 1, 1.0),
-            (-1, 0, 1.0),
-            (0, -1, 1.0)]
+    return [(1, 0, 1.0), (0, 1, 1.0), (-1, 0, 1.0), (0, -1, 1.0)]
 
 
 def _get_movements_8n():
@@ -20,14 +17,8 @@ def _get_movements_8n():
     :return: list of movements with cost [(dx, dy, movement_cost)]
     """
     s2 = math.sqrt(2)
-    return [(1, 0, 1.0),
-            (0, 1, 1.0),
-            (-1, 0, 1.0),
-            (0, -1, 1.0),
-            (1, 1, s2),
-            (-1, 1, s2),
-            (-1, -1, s2),
-            (1, -1, s2)]
+    return [(1, 0, 1.0), (0, 1, 1.0), (-1, 0, 1.0), (0, -1, 1.0), (1, 1, s2),
+            (-1, 1, s2), (-1, -1, s2), (1, -1, s2)]
 
 
 def a_star(start_m, goal_m, gmap, movement='8N', occupancy_cost_factor=3):
@@ -46,12 +37,11 @@ def a_star(start_m, goal_m, gmap, movement='8N', occupancy_cost_factor=3):
     # get array indices of start and goal
     start = gmap.get_index_from_coordinates(start_m[0], start_m[1])
     goal = gmap.get_index_from_coordinates(goal_m[0], goal_m[1])
-    print(str(start)+ ", " + str(goal))
 
     # check if start and goal nodes correspond to free spaces
     if gmap.is_occupied_idx(start):
         raise Exception('Start node is not traversable')
-        
+
     if gmap.is_occupied_idx(goal):
         raise Exception('Goal node is not traversable')
 
@@ -74,14 +64,12 @@ def a_star(start_m, goal_m, gmap, movement='8N', occupancy_cost_factor=3):
 
     # while there are elements to investigate in our front.
     while front:
-        #print("here")
         # get smallest item and remove from front.
         element = heappop(front)
 
         # if this has been visited already, skip it
         total_cost, cost, pos, previous = element
         if gmap.is_visited_idx(pos):
-            #print(str(pos) + "is visited")
             continue
 
         # now it has been visited, mark with cost
@@ -92,7 +80,6 @@ def a_star(start_m, goal_m, gmap, movement='8N', occupancy_cost_factor=3):
 
         # if the goal has been reached, we are done!
         if pos == goal:
-            #print("goal reached earlier")
             break
 
         # check all neighbors
@@ -100,37 +87,29 @@ def a_star(start_m, goal_m, gmap, movement='8N', occupancy_cost_factor=3):
             # determine new position
             new_x = pos[0] + dx
             new_y = pos[1] + dy
-            new_pos = (new_y, new_x)
-            if gmap.is_occupied_idx(new_pos):
-                print(str(new_pos))
+            new_pos = (new_x, new_y)
 
             # check whether new position is inside the map
             # if not, skip node
             if not gmap.is_inside_idx(new_pos):
-                #print(str(new_pos) + " is not inside the map")
                 continue
 
             # add node to front if it was not visited before and is not an obstacle
-            if (not gmap.is_visited_idx(new_pos)) and (not gmap.is_occupied_idx(new_pos)):
-                potential_function_cost = gmap.get_data_idx(new_pos)*occupancy_cost_factor
+            if (not gmap.is_visited_idx(new_pos)) and (
+                    not gmap.is_occupied_idx(new_pos)):
+                potential_function_cost = gmap.get_data_idx(
+                    new_pos) * occupancy_cost_factor
                 new_cost = cost + deltacost + potential_function_cost
-                new_total_cost_to_goal = new_cost + dist2d(new_pos, goal) + potential_function_cost
+                new_total_cost_to_goal = new_cost + dist2d(
+                    new_pos, goal) + potential_function_cost
 
-                heappush(front, (new_total_cost_to_goal, new_cost, new_pos, pos))
-            #elif (gmap.is_visited_idx(new_pos) and (not gmap.is_occupied_idx(new_pos))):
-                #print(str(new_pos) + " is visited")
-             #   continue
-            #elif (not gmap.is_visited_idx(new_pos) and (gmap.is_occupied_idx(new_pos))):
-             #   print(str(new_pos) + " is occupied")
-            #else :
-                #print(str(new_pos) + " is visited and occupied")
-             #   continue
+                heappush(front,
+                         (new_total_cost_to_goal, new_cost, new_pos, pos))
 
     # reconstruct path backwards (only if we reached the goal)
     path = []
     path_idx = []
     if pos == goal:
-        print("goal reached")
         while pos:
             path_idx.append(pos)
             # transform array indices to meters

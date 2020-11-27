@@ -61,14 +61,14 @@ def plot_path(path, loc):
 
     # plot path
     path_arr = numpy.array(path)
-    for i in path_arr:
-        loc.plotter.plot_point(i[0], i[1], GT)
-    plt.plot(path_arr[:, 0], path_arr[:, 1], 'y')
+    #for i in path_arr:
+     #   loc.plotter.plot_point(i[0], i[1], 'GT')
+    plt.plot(path_arr[:, 1], path_arr[:, 0], 'y')
 
     # plot start point
-    plt.plot(start_x, start_y, 'ro')
+    plt.plot(start_y, start_x, 'ro')
 
     # plot goal point
-    plt.plot(goal_x, goal_y, 'go')
+    plt.plot(goal_y, goal_x, 'go')
 
     plt.show()

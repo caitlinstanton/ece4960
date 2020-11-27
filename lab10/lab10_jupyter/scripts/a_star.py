@@ -37,7 +37,6 @@ def a_star(start_m, goal_m, gmap, movement='8N', occupancy_cost_factor=3):
     # get array indices of start and goal
     start = gmap.get_index_from_coordinates(start_m[0], start_m[1])
     goal = gmap.get_index_from_coordinates(goal_m[0], goal_m[1])
-    print(str(start) + ", " + str(goal))
 
     # check if start and goal nodes correspond to free spaces
     if gmap.is_occupied_idx(start):
@@ -65,14 +64,12 @@ def a_star(start_m, goal_m, gmap, movement='8N', occupancy_cost_factor=3):
 
     # while there are elements to investigate in our front.
     while front:
-        #print("here")
         # get smallest item and remove from front.
         element = heappop(front)
 
         # if this has been visited already, skip it
         total_cost, cost, pos, previous = element
         if gmap.is_visited_idx(pos):
-            #print(str(pos) + "is visited")
             continue
 
         # now it has been visited, mark with cost
@@ -83,7 +80,6 @@ def a_star(start_m, goal_m, gmap, movement='8N', occupancy_cost_factor=3):
 
         # if the goal has been reached, we are done!
         if pos == goal:
-            #print("goal reached earlier")
             break
 
         # check all neighbors
@@ -92,13 +88,10 @@ def a_star(start_m, goal_m, gmap, movement='8N', occupancy_cost_factor=3):
             new_x = pos[0] + dx
             new_y = pos[1] + dy
             new_pos = (new_x, new_y)
-            if gmap.is_occupied_idx(new_pos):
-                print(str(new_pos))
 
             # check whether new position is inside the map
             # if not, skip node
             if not gmap.is_inside_idx(new_pos):
-                #print(str(new_pos) + " is not inside the map")
                 continue
 
             # add node to front if it was not visited before and is not an obstacle
@@ -117,7 +110,6 @@ def a_star(start_m, goal_m, gmap, movement='8N', occupancy_cost_factor=3):
     path = []
     path_idx = []
     if pos == goal:
-        print("goal reached")
         while pos:
             path_idx.append(pos)
             # transform array indices to meters
