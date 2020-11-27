@@ -15,7 +15,9 @@ class OccupancyGridMap:
 
         self.data = data_array
         self.dim_cells = data_array.shape
+        print(self.dim_cells)
         self.dim_meters = (self.dim_cells[0] * cell_size, self.dim_cells[1] * cell_size)
+        print(self.dim_meters)
         self.cell_size = cell_size
         self.occupancy_threshold = occupancy_threshold
         # 2D array to mark visited nodes (in the beginning, no node has been visited)
@@ -144,6 +146,7 @@ class OccupancyGridMap:
         :return: True if the given point is occupied, false otherwise
         """
         x_index, y_index = point_idx
+        #print(str((x_index,y_index)) + ": " + str(self.get_data_idx((x_index, y_index))))
         if self.get_data_idx((x_index, y_index)) >= self.occupancy_threshold:
             return True
         else:
@@ -206,13 +209,13 @@ class OccupancyGridMap:
         return ogm
     
     @staticmethod
-    def from_data(data, cell_size):
+    def from_data(data, cell_size,threshold):
         """
         Create an OccupancyGridMap from a png image
         :param data: 2D numpy occupancy array
         :param cell_size: the image pixel size in meters
         :return: the created OccupancyGridMap
         """
-        ogm = OccupancyGridMap(data, cell_size)
+        ogm = OccupancyGridMap(data, cell_size,threshold)
 
         return ogm
