@@ -2,7 +2,7 @@ import math
 import png
 import numpy
 import matplotlib.pyplot as plt
-from robot_interface import *
+#from robot_interface import *
 
 
 def dist2d(point1, point2):
@@ -43,7 +43,7 @@ def png_to_ogm(filename, normalized=False, origin='lower'):
         for j in range(len(img_data[0])):
             if j % img[3]['planes'] == 0:
                 if normalized:
-                    out_img_row.append(img_data[i][j]*1.0/(2**bitdepth))
+                    out_img_row.append(img_data[i][j] * 1.0 / (2**bitdepth))
                 else:
                     out_img_row.append(img_data[i][j])
 
@@ -62,7 +62,7 @@ def plot_path(path, loc):
     # plot path
     path_arr = numpy.array(path)
     for i in path_arr:
-        loc.plotter.plot_point(i[0],i[1],GT)
+        loc.plotter.plot_point(i[0], i[1], GT)
     plt.plot(path_arr[:, 0], path_arr[:, 1], 'y')
 
     # plot start point
