@@ -150,7 +150,6 @@ class OccupancyGridMap:
         :return: True if the given point is occupied, false otherwise
         """
         x_index, y_index = point_idx
-        #print(str((x_index,y_index)) + ": " + str(self.get_data_idx((x_index, y_index))))
         if self.get_data_idx((x_index, y_index)) >= self.occupancy_threshold:
             return True
         else:

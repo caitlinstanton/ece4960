@@ -15,9 +15,8 @@ class OccupancyGridMap:
 
         self.data = data_array
         self.dim_cells = data_array.shape
-        print(self.dim_cells)
-        self.dim_meters = (self.dim_cells[0] * cell_size, self.dim_cells[1] * cell_size)
-        print(self.dim_meters)
+        self.dim_meters = (self.dim_cells[0] * cell_size,
+                           self.dim_cells[1] * cell_size)
         self.cell_size = cell_size
         self.occupancy_threshold = occupancy_threshold
         # 2D array to mark visited nodes (in the beginning, no node has been visited)
@@ -29,10 +28,11 @@ class OccupancyGridMap:
         :param point_idx: a point (x, y) in data array
         """
         x_index, y_index = point_idx
-        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
+        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[
+                0] or y_index >= self.dim_cells[1]:
             raise Exception('Point is outside map boundary')
 
-        self.visited[y_index][x_index] = 1.0
+        self.visited[x_index][y_index] = 1.0
 
     def mark_visited(self, point):
         """
@@ -51,10 +51,11 @@ class OccupancyGridMap:
         :return: True if the given point is visited, false otherwise
         """
         x_index, y_index = point_idx
-        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
+        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[
+                0] or y_index >= self.dim_cells[1]:
             raise Exception('Point is outside map boundary')
 
-        if self.visited[y_index][x_index] == 1.0:
+        if self.visited[x_index][y_index] == 1.0:
             return True
         else:
             return False
@@ -77,10 +78,11 @@ class OccupancyGridMap:
         :return: the occupancy value of the given point
         """
         x_index, y_index = point_idx
-        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
+        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[
+                0] or y_index >= self.dim_cells[1]:
             raise Exception('Point is outside map boundary')
 
-        return self.data[y_index][x_index]
+        return self.data[x_index][y_index]
 
     def get_data(self, point):
         """
@@ -100,10 +102,11 @@ class OccupancyGridMap:
         :param new_value: the new occupancy values
         """
         x_index, y_index = point_idx
-        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
+        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[
+                0] or y_index >= self.dim_cells[1]:
             raise Exception('Point is outside map boundary')
 
-        self.data[y_index][x_index] = new_value
+        self.data[x_index][y_index] = new_value
 
     def set_data(self, point, new_value):
         """
@@ -123,7 +126,8 @@ class OccupancyGridMap:
         :return: True if the given point is inside the map, false otherwise
         """
         x_index, y_index = point_idx
-        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
+        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[
+                0] or y_index >= self.dim_cells[1]:
             return False
         else:
             return True
@@ -146,7 +150,6 @@ class OccupancyGridMap:
         :return: True if the given point is occupied, false otherwise
         """
         x_index, y_index = point_idx
-        #print(str((x_index,y_index)) + ": " + str(self.get_data_idx((x_index, y_index))))
         if self.get_data_idx((x_index, y_index)) >= self.occupancy_threshold:
             return True
         else:
@@ -170,10 +173,10 @@ class OccupancyGridMap:
         :param y: the point's y-coordinate in meters
         :return: the corresponding array indices as a (x, y) tuple
         """
-        x_index = int(round(x/self.cell_size))
-        y_index = int(round(y/self.cell_size))
+        x_index = int(round(x / self.cell_size))
+        y_index = int(round(y / self.cell_size))
 
-        return y_index, x_index #swapped because x axis is up/down, y axis is left/right
+        return x_index, y_index
 
     def get_coordinates_from_index(self, x_index, y_index):
         """
@@ -182,8 +185,8 @@ class OccupancyGridMap:
         :param y_index: the point's y index
         :return: the corresponding point in meters as a (x, y) tuple
         """
-        x = x_index*self.cell_size
-        y = y_index*self.cell_size
+        x = x_index * self.cell_size
+        y = y_index * self.cell_size
 
         return x, y
 
@@ -191,7 +194,12 @@ class OccupancyGridMap:
         """
         plot the grid map
         """
-        plt.imshow(self.data, vmin=min_val, vmax=1, origin=origin, interpolation='none', alpha=alpha)
+        plt.imshow(self.data,
+                   vmin=min_val,
+                   vmax=1,
+                   origin=origin,
+                   interpolation='none',
+                   alpha=alpha)
         plt.draw()
 
     @staticmethod
@@ -207,15 +215,15 @@ class OccupancyGridMap:
         ogm = OccupancyGridMap(ogm_data_arr, cell_size)
 
         return ogm
-    
+
     @staticmethod
-    def from_data(data, cell_size,threshold):
+    def from_data(data, cell_size, threshold):
         """
         Create an OccupancyGridMap from a png image
         :param data: 2D numpy occupancy array
         :param cell_size: the image pixel size in meters
         :return: the created OccupancyGridMap
         """
-        ogm = OccupancyGridMap(data, cell_size,threshold)
+        ogm = OccupancyGridMap(data, cell_size, threshold)
 
         return ogm
