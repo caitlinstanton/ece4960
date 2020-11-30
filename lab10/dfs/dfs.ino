@@ -167,9 +167,6 @@ Node maze[MAZE_X][MAZE_Y];
 loc path[MAZE_X*MAZE_Y] = {};
 int path_index = 0;
 
-loc path_idx[MAZE_X*MAZE_Y] = {};
-int path_idx_index = 0;
-
 movement mvmts[4];
 
 enum DIRECTION {
@@ -245,12 +242,11 @@ void turnAround() {
 
 // goToIntersection ---------------------------------------------------
 void goToIntersection() {
-  Serial.println("go to intersection");
   for(volatile int count = 0;count<1000;count++){
     forward();
   }
+  sendMessage();
   stopWheels();
-  Serial.println("stopped");
 }
 
 //------------------------------------------------------------------------------------
@@ -525,18 +521,19 @@ void setup() {
 
     // Configure the watchdog.
     //setupTimerA(myTimer, 31); // timerNum, period - //moved to BLE_example_funcs.cpp scheduler_timer_init
-    setupWdt();
-    am_hal_wdt_init(&g_sWatchdogConfig);
-    //NVIC_EnableIRQ(CTIMER_IRQn); // Enable CTIMER interrupt in nested vector interrupt controller.
-    NVIC_EnableIRQ(WDT_IRQn); // Enable WDT interrupt in nested vector interrupt controller.
-
-    uint8_t a = 0;
-    m_Rcvd = &a;
-    //Serial.printf("Size of command: %d", sizeof(cmd_t));
-    am_hal_interrupt_master_enable();
-    //interrupts(); // Enable interrupt operation. Equivalent to am_hal_rtc_int_enable().
-    //am_hal_wdt_start();
-    //am_hal_wdt_int_enable(); - freezes boot
+//    setupWdt();
+//    am_hal_wdt_init(&g_sWatchdogConfig);
+//    //NVIC_EnableIRQ(CTIMER_IRQn); // Enable CTIMER interrupt in nested vector interrupt controller.
+//    NVIC_EnableIRQ(WDT_IRQn); // Enable WDT interrupt in nested vector interrupt controller.
+//
+//    uint8_t a = 0;
+//    m_Rcvd = &a;
+//    //Serial.printf("Size of command: %d", sizeof(cmd_t));
+//    am_hal_interrupt_master_enable();
+//    //interrupts(); // Enable interrupt operation. Equivalent to am_hal_rtc_int_enable().
+//    //am_hal_wdt_start();
+//    //am_hal_wdt_int_enable(); - freezes boot
+    Serial.println("done setup");
 }
 
 //------------------------------------------------------------------------------------
@@ -545,12 +542,18 @@ void setup() {
 // Runs a single DFS execution, then waits forever.
 void loop() {
   sendMessage();
+  //motorRamp = true;
   if (motorRamp) {
         t0 = micros(); // start time
-        goToIntersection();
-        traverseHelper(4, 1);
+        //goToIntersection();
+        loc start = {4,1};
+        loc goal = {goalX,goalY};
+        get_movements();
+        //traverseHelper(start.x,start.y); //DFS
+        //Serial.printf("%d,%d\n",goal.x,goal.y);
+        a_star(start, goal,3);
     // stop and wait 'forever' when done with maze
-    //while (1){}
+        while (1){};
   }
 }
 
@@ -642,6 +645,18 @@ void moveSrcToDest(int dx, int dy) {
   }
 }
 
+bool northWallDetection(int x, int y) {
+  return grid[x+1][y+1];
+}
+
+bool eastWallDetection(int x, int y) {
+  return grid[x][y+1];
+}
+
+bool westWallDetection(int x, int y) {
+  return grid[x][y-1];
+}
+
 void decideLeft(int referenceDir) {
   int change = dir - referenceDir;
   switch (change) {
@@ -721,17 +736,17 @@ void decideRight(int referenceDir) {
 //------------------------------------------------------------------------------------
 // This is the MAIN DFS function:
 void traverseHelper(int coordX, int coordY) {
+  Serial.printf("%d, %d\n",coordX,coordY);
   distance = distanceSensor.getDistance(); //Get the result of the measurement from the ToF sensor
   proxValue = proximitySensor.getProximity();  //Get result from prox sensor
   distanceSensor.clearInterrupt();
-
-  sendMessage();
   
   int nextX = 0, nextY = 0;
   if (coordX == MAZE_X || coordY == MAZE_Y) {
     return;
   }
   if (coordX == goalX && coordY == goalY) {
+    Serial.println("GOAL REACHED!");
     return;
   }
 
@@ -741,7 +756,7 @@ void traverseHelper(int coordX, int coordY) {
   int referenceDir  = dir;
   switch (dir) {
     case NORTH: {
-        //if (!frontWallDetection(referenceDir)) {
+        if (!northWallDetection(coordX,coordY)) {
           if (!maze[coordX + 1][coordY].visited) {
             goToIntersection();
             nextX = coordX + 1;
@@ -749,9 +764,9 @@ void traverseHelper(int coordX, int coordY) {
             traverseHelper(nextX, nextY);
             moveSrcToDest(coordX - nextX, coordY - nextY);
           }
-        //}
+        }
 
-        //if (!leftWallDetection(referenceDir)) {
+        if (!eastWallDetection(coordX,coordY)) {
           if (!maze[coordX][coordY + 1].visited) {
             decideLeft(referenceDir);
             nextX = coordX;
@@ -759,9 +774,9 @@ void traverseHelper(int coordX, int coordY) {
             traverseHelper(nextX, nextY);
             moveSrcToDest(coordX - nextX, coordY - nextY);
           }
-        //}
+        }
 
-        //if (!rightWallDetection(referenceDir)) {
+        if (!westWallDetection(coordX,coordY)) {
           if (!maze[coordX][coordY - 1].visited) {
             decideRight(referenceDir);
             nextX = coordX;
@@ -769,11 +784,11 @@ void traverseHelper(int coordX, int coordY) {
             traverseHelper(nextX, nextY);
             moveSrcToDest(coordX - nextX, coordY - nextY);
           }
-        //}
+        }
         break;
       }
     case EAST: {
-        //if (!frontWallDetection(referenceDir)) {
+        if (!northWallDetection(coordX,coordY)) {
           if (!maze[coordX][coordY - 1].visited) {
             goToIntersection();
             nextX = coordX;
@@ -781,9 +796,9 @@ void traverseHelper(int coordX, int coordY) {
             traverseHelper(nextX, nextY);
             moveSrcToDest(coordX - nextX, coordY - nextY);
           }
-        //}
+        }
 
-        //if (!leftWallDetection(referenceDir)) {
+        if (!eastWallDetection(coordX,coordY)) {
           if (!maze[coordX + 1][coordY].visited) {
             decideLeft(referenceDir);
             nextX = coordX + 1;
@@ -791,9 +806,9 @@ void traverseHelper(int coordX, int coordY) {
             traverseHelper(nextX, nextY);
             moveSrcToDest(coordX - nextX, coordY - nextY);
           }
-        //}
+        }
 
-        //if (!rightWallDetection(referenceDir)) {
+        if (!westWallDetection(coordX,coordY)) {
           if (!maze[coordX - 1][coordY].visited) {
             decideRight(referenceDir);
             nextX = coordX - 1;
@@ -801,7 +816,7 @@ void traverseHelper(int coordX, int coordY) {
             traverseHelper(nextX, nextY);
             moveSrcToDest(coordX - nextX, coordY - nextY);
           }
-        //}
+        }
         if (nextX == 0 && nextY == 0) {
           //turnAround();
           //goToIntersection();
@@ -813,7 +828,7 @@ void traverseHelper(int coordX, int coordY) {
         break;
       }
     case SOUTH: {
-        //if (!frontWallDetection(referenceDir)) {
+        if (!northWallDetection(coordX,coordY)) {
           if (!maze[coordX - 1][coordY].visited) {
             goToIntersection();
             nextX = coordX - 1;
@@ -821,9 +836,9 @@ void traverseHelper(int coordX, int coordY) {
             traverseHelper(nextX, nextY);
             moveSrcToDest(coordX - nextX, coordY - nextY);
           }
-        //}
+        }
 
-        //if (!leftWallDetection(referenceDir)) {
+        if (!eastWallDetection(coordX,coordY)) {
           if (!maze[coordX][coordY - 1].visited) {
             decideLeft(referenceDir);
             nextX = coordX;
@@ -831,9 +846,9 @@ void traverseHelper(int coordX, int coordY) {
             traverseHelper(nextX, nextY);
             moveSrcToDest(coordX - nextX, coordY - nextY);
           }
-        //}
+        }
 
-        //if (!rightWallDetection(referenceDir)) {
+        if (!westWallDetection(coordX,coordY)) {
           if (!maze[coordX][coordY + 1].visited) {
             decideRight(referenceDir);
             nextX = coordX;
@@ -841,7 +856,7 @@ void traverseHelper(int coordX, int coordY) {
             traverseHelper(nextX, nextY);
             moveSrcToDest(coordX - nextX, coordY - nextY);
           }
-        //}
+        }
         if (nextX == 0 && nextY == 0) {
           //turnAround();
           //goToIntersection();
@@ -853,7 +868,7 @@ void traverseHelper(int coordX, int coordY) {
         break;
       }
     case WEST: {
-        //if (!frontWallDetection(referenceDir)) {
+        if (!northWallDetection(coordX,coordY)) {
           if (!maze[coordX][coordY + 1].visited) {
             goToIntersection();
             nextX = coordX;
@@ -861,9 +876,9 @@ void traverseHelper(int coordX, int coordY) {
             traverseHelper(nextX, nextY);
             moveSrcToDest(coordX - nextX, coordY - nextY);
           }
-        //}
+        }
 
-        //if (!leftWallDetection(referenceDir)) {
+        if (!eastWallDetection(coordX,coordY)) {
           if (!maze[coordX - 1][coordY].visited) {
             decideLeft(referenceDir);
             nextX = coordX - 1;
@@ -871,9 +886,9 @@ void traverseHelper(int coordX, int coordY) {
             traverseHelper(nextX, nextY);
             moveSrcToDest(coordX - nextX, coordY - nextY);
           }
-        //}
+        }
 
-        //if (!rightWallDetection(referenceDir)) {
+        if (!westWallDetection(coordX,coordY)) {
           if (!maze[coordX + 1][coordY].visited) {
             decideRight(referenceDir);
             nextX = coordX + 1;
@@ -881,7 +896,7 @@ void traverseHelper(int coordX, int coordY) {
             traverseHelper(nextX, nextY);
             moveSrcToDest(coordX - nextX, coordY - nextY);
           }
-        //}
+        }
         if (nextX == 0 && nextY == 0) {
           //turnAround();
           //goToIntersection();
@@ -916,7 +931,7 @@ float dist2d(loc start, loc goal) {
   return sqrt(sq(dx) + sq(dy));
 }
 
-void a_star(loc start, loc goal, int occupancy_cost_factor=3) {
+void a_star(loc start, loc goal, int occupancy_cost_factor) {
     /*
     A* for 2D occupancy grid.
     
@@ -929,80 +944,98 @@ void a_star(loc start, loc goal, int occupancy_cost_factor=3) {
     
     :return: a tuple that contains: (the resulting path in meters, the resulting path in data array indices)
     */
+    Serial.printf("%d,%d to %d,%d\n",start.x,start.y,goal.x,goal.y);
     if (grid[start.x][start.y] == 0 && grid[goal.x][goal.y] == 0) {
       // add start node to front
       // front is a list of (total estimated cost to goal, total cost from start to node, node, previous node)
+      Serial.println("yes\n");
       float start_node_cost = 0;
       float start_node_estimated_cost_to_goal = dist2d(start, goal) + start_node_cost;
-      cost first = {start_node_estimated_cost_to_goal, start_node_cost, start, start};
-      cost front[MAZE_X*MAZE_Y] = {first};
+      loc prev_node = {0,0};
+      cost first = {start_node_estimated_cost_to_goal, start_node_cost, start, prev_node};
+      cost front[MAZE_X*MAZE_Y] = {};
+      front[0] = first; 
       int front_size = 1;
-      int front_index = 1;
+      int front_index = 0;
   
       // use a dictionary to remember where we came from in order to reconstruct the path later on
       loc came_from[MAZE_X*MAZE_Y] = {};
       int came_from_size = 0;
       int came_from_index = 0;
   
-      get_movements();
-  
       loc pos = start;
       cost new_element;
   
       // while there are elements to investigate in our front.
       while (front_size > 0) {
+          Serial.printf("front size: %d\n",front_size);
           // get smallest item and remove from front.
           cost element = front[front_index];
           front_index++;
-  
+          front_size--;
+          
           // if this has been visited already, skip it
           float total_cost = element.start_node_estimated_cost_to_goal; 
           float cost = element.start_node_cost;
           pos = element.start;
           loc previous = element.prev; 
   
-          if (maze[pos.x][pos.y].visited == 1) continue;
+          if (maze[pos.x][pos.y].visited == 1) {
+            Serial.printf("%d,%d is visited\n",pos.x,pos.y);
+            continue;
+          }
   
           // now it has been visited, mark with cost
           maze[pos.x][pos.y].visited = 1;
+          ::x = pos.x; ::y = pos.y;
+          goToIntersection();
   
           // set its previous node
           came_from[came_from_index] = previous;
   
           // if the goal has been reached, we are done!
-          if (pos.x == goal.x && pos.y == goal.y) break;
-  
+          if (pos.x == goal.x && pos.y == goal.y) {
+            Serial.printf("%d,%d is the goal!\n",pos.x,pos.y);
+            break;
+          }
+
+          int dx, dy, deltacost, new_x, new_y;
+          loc new_pos;
           // check all neighbors
           for (int i = 0; i < 4; i++) {
-              int dx = mvmts[i].dx;
-              int dy = mvmts[i].dy;
-              int deltacost =  mvmts[i].cost; 
+              dx = mvmts[i].dx;
+              dy = mvmts[i].dy;
+              deltacost =  mvmts[i].cost; 
           
               // determine new position
-              int new_x = pos.x + dx;
-              int new_y = pos.y + dy;
-              loc new_pos = {new_x, new_y};
+              new_x = pos.x + dx;
+              new_y = pos.y + dy;
+              new_pos = {new_x, new_y};
   
               // check whether new position is inside the map
               // if not, skip node
-              if (new_pos.x == MAZE_X || new_pos.y == MAZE_Y) break;
+              if (new_pos.x == MAZE_X || new_pos.y == MAZE_Y) {
+                Serial.printf("%d,%d isn't in the map\n",pos.x,pos.y);
+                break;
+              }
   
               // add node to front if it was not visited before and is not an obstacle
               if (maze[new_pos.x][new_pos.y].visited == 0 && grid[new_pos.x][new_pos.y] == 0) {
+                  Serial.printf("%d,%d isn't visited or occupied\n",pos.x,pos.y);
                   float potential_function_cost = grid[new_pos.x][new_pos.y] * occupancy_cost_factor;
                   float new_cost = cost + deltacost + potential_function_cost;
                   float new_total_cost_to_goal = new_cost + dist2d(new_pos, goal) + potential_function_cost;
                   new_element = {new_total_cost_to_goal, new_cost, new_pos, pos};
                   front[front_index] = new_element;
+                  front_size++;
               }
           }
       }
   
       // reconstruct path backwards (only if we reached the goal)
       if (pos.x == goal.x && pos.y == goal.y) {
+          Serial.printf("%d, %d\n",pos.x,pos.y);
           while (path_index < came_from_index) {
-              path_idx[path_idx_index] = pos;
-              path_idx_index++;
               // transform array indices to meters
               loc new_path_element = {pos.x,pos.y};
               path[path_index] = new_path_element;
@@ -1109,26 +1142,21 @@ void sendMessage() {
 
     if (bytestream_active)
     {
-        if(counterTransmit>=20) //no need to send ALL the data
-        {
-          Serial.println("TRANSMIT");
-          res_cmd->command_type = BYTESTREAM_TX;  //set command type to bytestream transmit
-          res_cmd->length = 11;                    //length doesn't matter since the handler will take care of this
-          //TODO: Put an example of a 32-bit integer and a 64-bit integer
-          //for the stream. Be sure to add a corresponding case in the
-          //python program.
-          //Serial.printf("Stream %d \n", bytestream_active);
-       
-          // pack up data to send
-          unsigned long t=micros(); //send current time for x axis
-          memcpy(res_cmd->data, &t, 4); 
-          memcpy(res_cmd->data+4, &x, 4);
-          memcpy(res_cmd->data+8, &y, 4);
-          amdtpsSendData((uint8_t *)res_cmd, 14);   //2 bytes for type and length, 14 bytes of data
-          counterTransmit = 0;
-        }
-      //Print time
-      unsigned long t = micros();
+      Serial.println("TRANSMIT");
+      res_cmd->command_type = BYTESTREAM_TX;  //set command type to bytestream transmit
+      res_cmd->length = 11;                    //length doesn't matter since the handler will take care of this
+      //TODO: Put an example of a 32-bit integer and a 64-bit integer
+      //for the stream. Be sure to add a corresponding case in the
+      //python program.
+      //Serial.printf("Stream %d \n", bytestream_active);
+   
+      // pack up data to send
+      unsigned long t=micros(); //send current time for x axis
+      memcpy(res_cmd->data, &t, 4); 
+      memcpy(res_cmd->data+4, &x, 4);
+      memcpy(res_cmd->data+8, &y, 4);
+      amdtpsSendData((uint8_t *)res_cmd, 14);   //2 bytes for type and length, 14 bytes of data
+      counterTransmit = 0;
       Serial.printf("Packet %d sent at %d micro seconds \n", packet_count, t);
       packet_count++;
     }
