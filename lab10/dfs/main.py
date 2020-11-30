@@ -62,7 +62,7 @@ async def robotTest(loop):
             # Unpack from an example stream that transmits a 2-byte and a
             # 4-byte integer as quickly as possible, both little-endian.
             if (code == Commands.BYTESTREAM_TX.value):
-                print(unpack("<LiIfff",
+                print(unpack("<Lii",
                              data))  #unpacks 1 long, 2 chars and 2 floats
 
     async def checkMessages():

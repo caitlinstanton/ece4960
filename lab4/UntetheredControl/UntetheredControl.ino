@@ -96,6 +96,7 @@ void turnRight() {
 void loop()
 {
   forward();
+  Serial.println("forward\n");
   delay(500);
   turnRight();
   delay(300);

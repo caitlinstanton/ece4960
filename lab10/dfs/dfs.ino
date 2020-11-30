@@ -126,13 +126,34 @@ PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 //------------------------------------------------------------------------------------
 // DFS/GUI/Maze Structures and Constants ---------------------------------------------
 //------------------------------------------------------------------------------------
-byte x = -1;
-byte y = 0;
+int x = 4;
+int y = 1;
 int dir = 0;
 
 // DFS node:
 struct Node {
   bool visited;
+};
+
+// A-Star location
+struct loc {
+  int x;
+  int y;
+};
+
+// A-Star movement
+struct movement {
+  int dx;
+  int dy;
+  float cost;
+};
+
+// A-Star cost 
+struct cost {
+  float start_node_estimated_cost_to_goal;
+  float start_node_cost;
+  loc start;
+  loc prev;
 };
 
 #define MAZE_X 17
@@ -143,6 +164,14 @@ int goalY;
 
 Node maze[MAZE_X][MAZE_Y];
 
+loc path[MAZE_X*MAZE_Y] = {};
+int path_index = 0;
+
+loc path_idx[MAZE_X*MAZE_Y] = {};
+int path_idx_index = 0;
+
+movement mvmts[4];
+
 enum DIRECTION {
   NORTH = 0,
   EAST,
@@ -150,7 +179,7 @@ enum DIRECTION {
   WEST
 };
 
-int grid[MAZE_X][MAZE_Y] =  {{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+int grid[MAZE_X][MAZE_Y] =  { {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
                               {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
                               {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
                               {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
@@ -292,6 +321,10 @@ float getYawMag(float xMag, float yMag) {
 
 float applyLPF(float curr, float prev, float alpha){
   return alpha * curr + (1 - alpha) * prev;
+}
+
+boolean frontObstacle(){
+  return (distance < 100 && proxValue > 100);
 }
 
 //------------------------------------------------------------------------------------
@@ -504,7 +537,6 @@ void setup() {
     //interrupts(); // Enable interrupt operation. Equivalent to am_hal_rtc_int_enable().
     //am_hal_wdt_start();
     //am_hal_wdt_int_enable(); - freezes boot
-    Serial.println("DONE WITH SETUP");
 }
 
 //------------------------------------------------------------------------------------
@@ -512,161 +544,14 @@ void setup() {
 //------------------------------------------------------------------------------------
 // Runs a single DFS execution, then waits forever.
 void loop() {
+  sendMessage();
   if (motorRamp) {
         t0 = micros(); // start time
         goToIntersection();
-        //traverseHelper(0, 0);
+        traverseHelper(4, 1);
     // stop and wait 'forever' when done with maze
     //while (1){}
-        if( myICM.dataReady() ){
-          myICM.getAGMT();  
-          // PITCH
-          pitchAcc = getPitchAcc(myICM.accX(),myICM.accZ());
-          pitchAccLPF = applyLPF(pitchAcc, prevPitchAcc, 0.2);
-          prevPitchAcc = pitchAccLPF;
-          pitchGyr = getPitchGyr(pitchGyr, myICM.gyrY());
-          pitchFusion = (prevPitchFusion + pitchGyr * dt/1000000) * (1-alpha) + pitchAccLPF * alpha;
-          prevPitchFusion = pitchFusion; 
-      
-          // ROLL
-          rollAcc = -getRollAcc(myICM.accY(),myICM.accZ()); //flipped sign to be consistent with gyroscope data
-          rollAccLPF = applyLPF(rollAcc, prevRollAcc, alpha);
-          prevRollAcc = rollAccLPF;
-          rollGyr = getRollGyr(rollGyr, myICM.gyrX());
-          rollFusion = (prevRollFusion + rollGyr * dt/1000000) * (1-alpha) + rollAccLPF * alpha;
-          prevRollFusion = rollFusion;
-      
-          // YAW
-          yawGyr = getYawGyr(yawGyr, myICM.gyrZ());
-          xMag = myICM.magX()*cos(pitchGyr*M_PI/180)-myICM.magZ()*sin(pitchGyr*M_PI/180);
-          yMag = myICM.magY()*sin(pitchGyr*M_PI/180)*sin(rollGyr*M_PI/180)-myICM.magY()*cos(rollGyr*M_PI/180)+myICM.magZ()*cos(pitchGyr*M_PI/180)*cos(rollGyr*M_PI/180);
-          yawMag = atan2((myICM.magX()*cos(pitchFusion) + myICM.magZ()*sin(pitchFusion)), (myICM.magY()*cos(rollFusion) + myICM.magZ()*sin(rollFusion)));
-        }else{
-          Serial.println("Waiting for data");
-          delay(500);
-        }
-    }
-    
-    counterTransmit++; 
-    //Serial.println("Loop...."); //KHE Loops constantly....no delays
-
-    if (l_Rcvd > 1) //Check if we have a new message from amdtps_main.c through BLE_example_funcs.cpp
-    {
-
-        cmd = (cmd_t *)m_Rcvd;
-        /*
-        Serial.print("Message Buffer: ");
-        for (int i = 0; i < l_Rcvd; i++)
-            Serial.printf("%d ", m_Rcvd[i]);
-        Serial.println();
-        Serial.printf("Got command: 0x%x Length: 0x%x Data: ", cmd->command_type, cmd->length);
-
-        for (int i = 0; i < cmd->length; i++)
-        {
-            Serial.printf("0x%x ", cmd->data[i]);
-        }
-        Serial.println();
-        */
-
-        switch (cmd->command_type)
-        {
-        case SET_MOTORS:
-
-            Serial.println("Placeholder: Set Motors");
-            break;
-        case GET_MOTORS:
-
-            Serial.println("Placeholder: Set Motors");
-            //amdtpsSendData((uint8_t *)res_cmd, *val_len);
-            break;
-        case SER_RX:
-            Serial.println("Got a serial message");
-            pushMessage((char *)&cmd->data, cmd->length);
-            break;
-        case REQ_FLOAT:
-            Serial.println("Going to send a float");
-            //TODO: Put a float (perhaps pi) into a command response and send it.
-            res_cmd->command_type = GIVE_FLOAT;     //set command type as GIVE_FLOAT
-            res_cmd->length=6;                      
-            ((float *)(res_cmd->data))[0] = 3.14f;  //put a float into data to send
-            amdtpsSendData((uint8_t *)res_cmd, 6);  //2 bytes for type and length, 4 bytes of data
-            break;
-        case PING:
-            Serial.println("Ping Pong");
-            cmd->command_type = PONG;
-            amdtpsSendData(m_Rcvd, l_Rcvd);
-            break;
-        case START_BYTESTREAM_TX:
-            bytestream_active = (int)cmd->data[0];
-            Serial.printf("Start bytestream with active %d \n", bytestream_active);
-            ((uint32_t *)res_cmd->data)[0] = 0;
-            bytestream_active = 1;
-            motorRamp = true;
-            
-            break;
-        case STOP_BYTESTREAM_TX:
-            bytestream_active = 0;
-            break;
-        default:
-            Serial.printf("Unsupported Command 0x%x \n", cmd->command_type);
-            break;
-        }
-
-        l_Rcvd = 0;
-        am_hal_wdt_restart();
-        free(m_Rcvd);
-    } //End if s_Rcvd != 100
-    else if ((s_Rcvd[0] == '6' && s_Rcvd[1] == '7'))
-    {
-        s_Rcvd[0] = 0;
-        digitalWrite(LED_BUILTIN, HIGH);
-        //Serial.printf("Connected, length was %d", l_Rcvd);
-    }
-    else if ((s_Rcvd[0] == '6' && s_Rcvd[1] == '8'))
-    {
-        digitalWrite(LED_BUILTIN, LOW);
-        Serial.println("disconnected");
-        //Decimal value of D for Disconnect
-        //Serial.println("got disconnect from case in ino file - set_Stop");
-        digitalWrite(LED_BUILTIN, LOW);
-        //amdtps_conn_close();
-        DmDevReset();
-    }
-
-    if (availableMessage())
-    {
-        Serial.println("Bluetooth Message:");
-        Serial.println(pullMessage());
-        printOverBluetooth("Message Received.");
-    }
-
-    if (bytestream_active)
-    {
-        if(counterTransmit>=20) //no need to send ALL the data
-        {
-          Serial.println("TRANSMIT");
-          res_cmd->command_type = BYTESTREAM_TX;  //set command type to bytestream transmit
-          res_cmd->length = 11;                    //length doesn't matter since the handler will take care of this
-          //TODO: Put an example of a 32-bit integer and a 64-bit integer
-          //for the stream. Be sure to add a corresponding case in the
-          //python program.
-          //Serial.printf("Stream %d \n", bytestream_active);
-       
-          // pack up data to send
-          unsigned long t=micros(); //send current time for x axis
-          memcpy(res_cmd->data, &t, 4); 
-          memcpy(res_cmd->data+4, &motorVal, 1);
-          memcpy(res_cmd->data+5, &yawGyr, 4);
-          amdtpsSendData((uint8_t *)res_cmd, 11);  //2 bytes for type and length, 14 bytes of data
-          counterTransmit = 0;
-        }
-      //Print time
-      unsigned long t = micros();
-      Serial.printf("Packet %d sent at %d micro seconds \n", packet_count, t);
-      packet_count++;
-    }
-    trigger_timers();
-    dt = micros() - t0;  
+  }
 }
 
 //------------------------------------------------------------------------------------
@@ -836,8 +721,14 @@ void decideRight(int referenceDir) {
 //------------------------------------------------------------------------------------
 // This is the MAIN DFS function:
 void traverseHelper(int coordX, int coordY) {
+  distance = distanceSensor.getDistance(); //Get the result of the measurement from the ToF sensor
+  proxValue = proximitySensor.getProximity();  //Get result from prox sensor
+  distanceSensor.clearInterrupt();
+
+  sendMessage();
+  
   int nextX = 0, nextY = 0;
-  if (coordX == MAZE_X || coordX == MAZE_X) {
+  if (coordX == MAZE_X || coordY == MAZE_Y) {
     return;
   }
   if (coordX == goalX && coordY == goalY) {
@@ -856,7 +747,7 @@ void traverseHelper(int coordX, int coordY) {
             nextX = coordX + 1;
             nextY = coordY;
             traverseHelper(nextX, nextY);
-            //moveSrcToDest(coordX - nextX, coordY - nextY);
+            moveSrcToDest(coordX - nextX, coordY - nextY);
           }
         //}
 
@@ -866,7 +757,7 @@ void traverseHelper(int coordX, int coordY) {
             nextX = coordX;
             nextY = coordY + 1;
             traverseHelper(nextX, nextY);
-            //moveSrcToDest(coordX - nextX, coordY - nextY);
+            moveSrcToDest(coordX - nextX, coordY - nextY);
           }
         //}
 
@@ -876,7 +767,7 @@ void traverseHelper(int coordX, int coordY) {
             nextX = coordX;
             nextY = coordY - 1;
             traverseHelper(nextX, nextY);
-            //moveSrcToDest(coordX - nextX, coordY - nextY);
+            moveSrcToDest(coordX - nextX, coordY - nextY);
           }
         //}
         break;
@@ -888,7 +779,7 @@ void traverseHelper(int coordX, int coordY) {
             nextX = coordX;
             nextY = coordY - 1;
             traverseHelper(nextX, nextY);
-            //moveSrcToDest(coordX - nextX, coordY - nextY);
+            moveSrcToDest(coordX - nextX, coordY - nextY);
           }
         //}
 
@@ -898,7 +789,7 @@ void traverseHelper(int coordX, int coordY) {
             nextX = coordX + 1;
             nextY = coordY;
             traverseHelper(nextX, nextY);
-            //moveSrcToDest(coordX - nextX, coordY - nextY);
+            moveSrcToDest(coordX - nextX, coordY - nextY);
           }
         //}
 
@@ -908,7 +799,7 @@ void traverseHelper(int coordX, int coordY) {
             nextX = coordX - 1;
             nextY = coordY;
             traverseHelper(nextX, nextY);
-            //moveSrcToDest(coordX - nextX, coordY - nextY);
+            moveSrcToDest(coordX - nextX, coordY - nextY);
           }
         //}
         if (nextX == 0 && nextY == 0) {
@@ -928,7 +819,7 @@ void traverseHelper(int coordX, int coordY) {
             nextX = coordX - 1;
             nextY = coordY;
             traverseHelper(nextX, nextY);
-            //moveSrcToDest(coordX - nextX, coordY - nextY);
+            moveSrcToDest(coordX - nextX, coordY - nextY);
           }
         //}
 
@@ -938,7 +829,7 @@ void traverseHelper(int coordX, int coordY) {
             nextX = coordX;
             nextY = coordY - 1;
             traverseHelper(nextX, nextY);
-            //moveSrcToDest(coordX - nextX, coordY - nextY);
+            moveSrcToDest(coordX - nextX, coordY - nextY);
           }
         //}
 
@@ -948,7 +839,7 @@ void traverseHelper(int coordX, int coordY) {
             nextX = coordX;
             nextY = coordY + 1;
             traverseHelper(nextX, nextY);
-            //moveSrcToDest(coordX - nextX, coordY - nextY);
+            moveSrcToDest(coordX - nextX, coordY - nextY);
           }
         //}
         if (nextX == 0 && nextY == 0) {
@@ -968,7 +859,7 @@ void traverseHelper(int coordX, int coordY) {
             nextX = coordX;
             nextY = coordY + 1;
             traverseHelper(nextX, nextY);
-            //moveSrcToDest(coordX - nextX, coordY - nextY);
+            moveSrcToDest(coordX - nextX, coordY - nextY);
           }
         //}
 
@@ -978,7 +869,7 @@ void traverseHelper(int coordX, int coordY) {
             nextX = coordX - 1;
             nextY = coordY;
             traverseHelper(nextX, nextY);
-            //moveSrcToDest(coordX - nextX, coordY - nextY);
+            moveSrcToDest(coordX - nextX, coordY - nextY);
           }
         //}
 
@@ -988,7 +879,7 @@ void traverseHelper(int coordX, int coordY) {
             nextX = coordX + 1;
             nextY = coordY;
             traverseHelper(nextX, nextY);
-            //moveSrcToDest(coordX - nextX, coordY - nextY);
+            moveSrcToDest(coordX - nextX, coordY - nextY);
           }
         //}
         if (nextX == 0 && nextY == 0) {
@@ -1002,4 +893,245 @@ void traverseHelper(int coordX, int coordY) {
         break;
       }
   }
+}
+
+void get_movements() {
+    /*
+    Get all possible 4-connectivity movements.
+    :return: list of movements with cost [(dx, dy, movement_cost)]
+    */
+    movement north = {1,0,1.0};
+    movement east = {0,1,1.0};
+    movement south = {-1,0,1.0};
+    movement west = {0,-1,1.0};
+    mvmts[0] = north;
+    mvmts[1] = east;
+    mvmts[2] = south;
+    mvmts[3] = west;
+}
+
+float dist2d(loc start, loc goal) {
+  float dx = abs(start.x - goal.x);
+  float dy = abs(start.y - goal.y);
+  return sqrt(sq(dx) + sq(dy));
+}
+
+void a_star(loc start, loc goal, int occupancy_cost_factor=3) {
+    /*
+    A* for 2D occupancy grid.
+    
+    :param start_m: start node (x, y) in meters
+    :param goal_m: goal node (x, y) in meters
+    :param gmap: the grid map
+    :param movement: select between 4-connectivity ('4N') and 8-connectivity ('8N', default)
+    :param occupancy_cost_factor: a number the will be multiplied by the occupancy probability
+        of a grid map cell to give the additional movement cost to this cell (default: 3).
+    
+    :return: a tuple that contains: (the resulting path in meters, the resulting path in data array indices)
+    */
+    if (grid[start.x][start.y] == 0 && grid[goal.x][goal.y] == 0) {
+      // add start node to front
+      // front is a list of (total estimated cost to goal, total cost from start to node, node, previous node)
+      float start_node_cost = 0;
+      float start_node_estimated_cost_to_goal = dist2d(start, goal) + start_node_cost;
+      cost first = {start_node_estimated_cost_to_goal, start_node_cost, start, start};
+      cost front[MAZE_X*MAZE_Y] = {first};
+      int front_size = 1;
+      int front_index = 1;
+  
+      // use a dictionary to remember where we came from in order to reconstruct the path later on
+      loc came_from[MAZE_X*MAZE_Y] = {};
+      int came_from_size = 0;
+      int came_from_index = 0;
+  
+      get_movements();
+  
+      loc pos = start;
+      cost new_element;
+  
+      // while there are elements to investigate in our front.
+      while (front_size > 0) {
+          // get smallest item and remove from front.
+          cost element = front[front_index];
+          front_index++;
+  
+          // if this has been visited already, skip it
+          float total_cost = element.start_node_estimated_cost_to_goal; 
+          float cost = element.start_node_cost;
+          pos = element.start;
+          loc previous = element.prev; 
+  
+          if (maze[pos.x][pos.y].visited == 1) continue;
+  
+          // now it has been visited, mark with cost
+          maze[pos.x][pos.y].visited = 1;
+  
+          // set its previous node
+          came_from[came_from_index] = previous;
+  
+          // if the goal has been reached, we are done!
+          if (pos.x == goal.x && pos.y == goal.y) break;
+  
+          // check all neighbors
+          for (int i = 0; i < 4; i++) {
+              int dx = mvmts[i].dx;
+              int dy = mvmts[i].dy;
+              int deltacost =  mvmts[i].cost; 
+          
+              // determine new position
+              int new_x = pos.x + dx;
+              int new_y = pos.y + dy;
+              loc new_pos = {new_x, new_y};
+  
+              // check whether new position is inside the map
+              // if not, skip node
+              if (new_pos.x == MAZE_X || new_pos.y == MAZE_Y) break;
+  
+              // add node to front if it was not visited before and is not an obstacle
+              if (maze[new_pos.x][new_pos.y].visited == 0 && grid[new_pos.x][new_pos.y] == 0) {
+                  float potential_function_cost = grid[new_pos.x][new_pos.y] * occupancy_cost_factor;
+                  float new_cost = cost + deltacost + potential_function_cost;
+                  float new_total_cost_to_goal = new_cost + dist2d(new_pos, goal) + potential_function_cost;
+                  new_element = {new_total_cost_to_goal, new_cost, new_pos, pos};
+                  front[front_index] = new_element;
+              }
+          }
+      }
+  
+      // reconstruct path backwards (only if we reached the goal)
+      if (pos.x == goal.x && pos.y == goal.y) {
+          while (path_index < came_from_index) {
+              path_idx[path_idx_index] = pos;
+              path_idx_index++;
+              // transform array indices to meters
+              loc new_path_element = {pos.x,pos.y};
+              path[path_index] = new_path_element;
+              path_index++;
+              pos = came_from[path_index];
+          }
+      }
+    }
+}
+
+void sendMessage() {
+  counterTransmit++; 
+    //Serial.println("Loop...."); //KHE Loops constantly....no delays
+
+    if (l_Rcvd > 1) //Check if we have a new message from amdtps_main.c through BLE_example_funcs.cpp
+    {
+
+        cmd = (cmd_t *)m_Rcvd;
+        /*
+        Serial.print("Message Buffer: ");
+        for (int i = 0; i < l_Rcvd; i++)
+            Serial.printf("%d ", m_Rcvd[i]);
+        Serial.println();
+        Serial.printf("Got command: 0x%x Length: 0x%x Data: ", cmd->command_type, cmd->length);
+
+        for (int i = 0; i < cmd->length; i++)
+        {
+            Serial.printf("0x%x ", cmd->data[i]);
+        }
+        Serial.println();
+        */
+
+        switch (cmd->command_type)
+        {
+        case SET_MOTORS:
+
+            Serial.println("Placeholder: Set Motors");
+            break;
+        case GET_MOTORS:
+
+            Serial.println("Placeholder: Set Motors");
+            //amdtpsSendData((uint8_t *)res_cmd, *val_len);
+            break;
+        case SER_RX:
+            Serial.println("Got a serial message");
+            pushMessage((char *)&cmd->data, cmd->length);
+            break;
+        case REQ_FLOAT:
+            Serial.println("Going to send a float");
+            //TODO: Put a float (perhaps pi) into a command response and send it.
+            res_cmd->command_type = GIVE_FLOAT;     //set command type as GIVE_FLOAT
+            res_cmd->length=6;                      
+            ((float *)(res_cmd->data))[0] = 3.14f;  //put a float into data to send
+            amdtpsSendData((uint8_t *)res_cmd, 6);  //2 bytes for type and length, 4 bytes of data
+            break;
+        case PING:
+            Serial.println("Ping Pong");
+            cmd->command_type = PONG;
+            amdtpsSendData(m_Rcvd, l_Rcvd);
+            break;
+        case START_BYTESTREAM_TX:
+            bytestream_active = (int)cmd->data[0];
+            Serial.printf("Start bytestream with active %d \n", bytestream_active);
+            ((uint32_t *)res_cmd->data)[0] = 0;
+            bytestream_active = 1;
+            motorRamp = true;
+            
+            break;
+        case STOP_BYTESTREAM_TX:
+            bytestream_active = 0;
+            break;
+        default:
+            Serial.printf("Unsupported Command 0x%x \n", cmd->command_type);
+            break;
+        }
+
+        l_Rcvd = 0;
+        am_hal_wdt_restart();
+        free(m_Rcvd);
+    } //End if s_Rcvd != 100
+    else if ((s_Rcvd[0] == '6' && s_Rcvd[1] == '7'))
+    {
+        s_Rcvd[0] = 0;
+        digitalWrite(LED_BUILTIN, HIGH);
+        //Serial.printf("Connected, length was %d", l_Rcvd);
+    }
+    else if ((s_Rcvd[0] == '6' && s_Rcvd[1] == '8'))
+    {
+        digitalWrite(LED_BUILTIN, LOW);
+        Serial.println("disconnected");
+        //Decimal value of D for Disconnect
+        //Serial.println("got disconnect from case in ino file - set_Stop");
+        digitalWrite(LED_BUILTIN, LOW);
+        //amdtps_conn_close();
+        DmDevReset();
+    }
+
+    if (availableMessage())
+    {
+        Serial.println("Bluetooth Message:");
+        Serial.println(pullMessage());
+        printOverBluetooth("Message Received.");
+    }
+
+    if (bytestream_active)
+    {
+        if(counterTransmit>=20) //no need to send ALL the data
+        {
+          Serial.println("TRANSMIT");
+          res_cmd->command_type = BYTESTREAM_TX;  //set command type to bytestream transmit
+          res_cmd->length = 11;                    //length doesn't matter since the handler will take care of this
+          //TODO: Put an example of a 32-bit integer and a 64-bit integer
+          //for the stream. Be sure to add a corresponding case in the
+          //python program.
+          //Serial.printf("Stream %d \n", bytestream_active);
+       
+          // pack up data to send
+          unsigned long t=micros(); //send current time for x axis
+          memcpy(res_cmd->data, &t, 4); 
+          memcpy(res_cmd->data+4, &x, 4);
+          memcpy(res_cmd->data+8, &y, 4);
+          amdtpsSendData((uint8_t *)res_cmd, 14);   //2 bytes for type and length, 14 bytes of data
+          counterTransmit = 0;
+        }
+      //Print time
+      unsigned long t = micros();
+      Serial.printf("Packet %d sent at %d micro seconds \n", packet_count, t);
+      packet_count++;
+    }
+    trigger_timers();
+    dt = micros() - t0;  
 }
