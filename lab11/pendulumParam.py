@@ -8,10 +8,10 @@ from scipy import signal
 
 #Physical parameters of the inverted pendulum known to the controller
 m1 = 0.03  # Mass of the pendulum [kg]
-m2 = .475  # Mass of the cart [kg]
+m2 = .522  # Mass of the cart [kg]
 ell = 1.21  # Length of the rod [m]
 g = -9.81  # Gravity, [m/s^2]
-b = 0.78  # Damping coefficient [Ns]
+b = 1.8  # Damping coefficient [Ns]
 
 #parameters for animation
 w = 0.15  # Width of the cart [m]

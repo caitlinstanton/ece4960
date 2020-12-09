@@ -15,12 +15,11 @@ from pendulumAnimation import pendulumAn
 from plotDataZ import plotData
 from signalGenerator import signalGen
 
-#calculate controller gain (pass into pendumControllerDynamics as K)
-ctrl_gain = 0
-
 #Initialize and rename for convenience
-ref = signalGen(amplitude=.5, frequency=0.05, y_offset=0)
-ctrl = pendulumCnt(param=P, zref=ref.square, K=ctrl_gain)
+# ref = signalGen(amplitude=0.5, frequency=0.05, y_offset=0)  #original values
+ref = signalGen(amplitude=160, frequency=0.8,
+                y_offset=0)  #worked to accommodate deadband
+ctrl = pendulumCnt(param=P, zref=ref.sin)
 
 plt.close('all')
 animation = pendulumAn()
@@ -55,3 +54,4 @@ while i < len(t_array):
 # Plot how closely the actual performance of the pendulum on a cart matched the desired performance
 dataPlot = plotData()  #initializes plot
 dataPlot.Plot(t_array, reference, STATES)  #plots the data
+plt.pause(10)

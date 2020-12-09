@@ -77,7 +77,8 @@ class pendulumCnt:
             self.reference = signalGen(amplitude=.5,
                                        frequency=0.05,
                                        y_offset=0)
-            self.zref = self.reference.square
+            # self.zref = self.reference.square
+            self.zref = self.reference.sin
 
     ####################################################
     #               scipy.integrate
@@ -93,6 +94,7 @@ class pendulumCnt:
 
         #Get reference inputs from signal generators
         zref = self.zref(t)  #control cart z location
+        # #change to sinusoidal from Campuswire post
 
         #calculting the new control force
         curr_state = np.array([[z], [zdot], [theta],
@@ -108,9 +110,9 @@ class pendulumCnt:
         #Feedback control with sensor noise
         mu = 0
         sig_z = 0.0001
-        sig_z_dot = 0.0001
-        sig_theta = 0.0001
-        sig_theta_dot = 0.0001
+        sig_z_dot = 0.000
+        sig_theta = 0.000
+        sig_theta_dot = 0.000
         noise = np.array([[random.gauss(mu, sig_z)],
                           [random.gauss(mu, sig_z_dot)],
                           [random.gauss(mu, sig_theta)],
@@ -120,36 +122,67 @@ class pendulumCnt:
         noise_state[2] = self.limitTheta(noise_state[2])
         #print(noise_state)
 
+        dpoles = np.array([-0.1, -0.2, -0.3,
+                           -0.4])  #original dpoles, robot flew off the screen
+
         # dpoles = np.array([-1, -1.2, -1.3, -1.4
-        #                    ])  #more negative equals more aggressive controller
+        #                   ])  #secondary dpoles, allowed robot to balance,
+        #more negative equals more aggressive controller
         # Kr = control.place(
         #     p.A, p.B,
-        #     dpoles)  #might want to move to runSimulation to pass in as param
+        #     dpoles)  #use when not using Q,R
 
         Q = np.matrix([[1, 0.0, 0.0, 0.0], [0.0, 1, 0.0, 0.0],
                        [0.0, 0.0, 10, 0.0], [0.0, 0.0, 0.0, 100]])
-        R = np.matrix([10])  #want to make this higher to be more aggressive
+        R = np.matrix([1000])
+
+        # DEADBAND AND SATURATION FOR A LIL OF 0.0001 SIGMA NOISE
+        Q = np.matrix([[3.0, 0.0, 0.0, 0.0], [0.0, 0.5, 0.0, 0.0],
+                       [0.0, 0.0, 0.5, 0.0], [0.0, 0.0, 0.0, 3.0]])
+        R = np.matrix([13000.0
+                       ])  #want to make this higher to be more aggressive
         #solve algebraic Ricatti equation (ARE)
         S = scipy.linalg.solve_continuous_are(p.A, p.B, Q, R)
         # Solve the ricatti equation and compute the LQR gain
-        Kr = np.linalg.inv(R).dot(p.B.transpose().dot(S))
+        Kr = np.linalg.inv(R).dot(p.B.transpose().dot(S))  #use when using Q,R
+
+        # f = open("K_poles_lqr_log.txt", "a+")
+        # print(Kr, np.linalg.eig(p.A - p.B * Kr)[0])
+        # f.write("Poles: " + str(np.linalg.eig(p.A - p.B * Kr)[0]) + ", K: " +
+        #         str(Kr) + "\n")
+        # f.close()
 
         # eigenval = np.linalg.eig(p.A - (p.B * Kr))
         #print(eigenval)
-        orig_u = Kr * (np.subtract(des_state, noise_state))
+        orig_u = Kr * (np.subtract(des_state, curr_state))  #noise_state))
         self.u = orig_u
         #print(self.u) #goes from -1.6 to around 0
 
         #Feedback control of a non-ideal pendulum on a cart system
-        # deadband = (180 / 200) * (3.33) * (
-        #     0.522)  #deadband of robot/motorval (from lab 6) * acc * mass
-        # saturation = 0.522 * 3.33
-        # if orig_u < deadband:
-        #     self.u = deadband
-        # elif orig_u > saturation:
-        #     self.u = saturation
-        # else:
-        #     self.u = orig_u
+        deadband = (120 / 255) * (3.33) * (
+            0.522
+        )  #~0.8 = deadband of robot/motorval (from lab 6) * acc * mass
+        saturation = 0.522 * 3.33
+
+        # print(orig_u)
+        if orig_u > 0:
+            if orig_u < deadband:
+                self.u = np.array([0])
+            # elif orig_u > (0.5 * deadband) and orig_u < deadband:
+            # self.u = np.array([deadband])
+            elif orig_u > saturation:
+                self.u = np.array([saturation])
+            else:
+                self.u = orig_u
+        else:
+            if orig_u > (-1 * deadband):
+                self.u = np.array([0])
+            # elif orig_u < (-0.5 * deadband) and orig_u > (-1 * deadband):
+            # self.u = np.array([-1 * deadband])
+            elif orig_u < (-1 * saturation):
+                self.u = np.array([-1 * saturation])
+            else:
+                self.u = orig_u
 
         #simplifications for the calculations - constants
         Sy = np.sin(theta)
