@@ -137,10 +137,10 @@ class pendulumCnt:
         R = np.matrix([1000])
 
         # DEADBAND AND SATURATION FOR A LIL OF 0.0001 SIGMA NOISE
-        Q = np.matrix([[3.0, 0.0, 0.0, 0.0], [0.0, 0.5, 0.0, 0.0],
-                       [0.0, 0.0, 0.5, 0.0], [0.0, 0.0, 0.0, 3.0]])
-        R = np.matrix([13000.0
-                       ])  #want to make this higher to be more aggressive
+        # Q = np.matrix([[3.0, 0.0, 0.0, 0.0], [0.0, 0.5, 0.0, 0.0],
+        #                [0.0, 0.0, 0.5, 0.0], [0.0, 0.0, 0.0, 3.0]])
+        # R = np.matrix([13000.0
+        #                ])  #want to make this higher to be more aggressive
         #solve algebraic Ricatti equation (ARE)
         S = scipy.linalg.solve_continuous_are(p.A, p.B, Q, R)
         # Solve the ricatti equation and compute the LQR gain
