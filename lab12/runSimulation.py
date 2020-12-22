@@ -9,7 +9,7 @@ sys.path.append('..')  # add parent directory
 import matplotlib.pyplot as plt
 import control
 import pendulumParam as P
-from kalmanFilter import kalmanFilter
+from kalmanFilter import kalmanFilter, kalmanFilterEC
 from pendulumNonlinearDynamics import Pendulum
 from pendulumAnimation import pendulumAn
 from plotDataZ import plotData
@@ -68,7 +68,7 @@ for t in t_array[:-1]:
         #     old_state) + np.random.randn() * 0.01  # to add sensor noise
         y_kf = P.C.dot(old_state) + np.random.randn(
             2, 1) * 0.01  # to add sensor noise to z, thetadot
-        mu, sigma = kalmanFilter(mu, sigma, u, y_kf)
+        mu, sigma = kalmanFilterEC(mu, sigma, u, y_kf, t)
 
     new_state = old_state + np.array(pendulum.cartpendfunc(old_state, u)) * dt
 

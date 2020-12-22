@@ -15,7 +15,7 @@ b = 0.78  # Damping coefficient [Ns]
 T_update = 0.01  # Controller and Estimator update rate [s]
 
 #parameters for animation
-w = 0.15  # Width of the cart [m]
+w = 0.15  # Width of the cart [m o]
 h = 0.07  # Height of the cart [m]
 gap = 0.005  # Gap between the cart and x-axis [m]
 radius = 0.08  # Radius of circular part of pendulum [m]
